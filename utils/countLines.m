@@ -7,7 +7,8 @@ if (isunix) %# Linux, mac
     [~, result] = system( ['wc -l ', filename] );
     numlines = str2double(result);
 elseif (ispc) %# Windows
-    numlines = str2double( perl('countLines.pl', filename) );
+    completePath = which(filename);
+    numlines = str2double( perl('countLines.pl', completePath) );
 else
     error('Count lines works only on unix or windows operating systems');
 end

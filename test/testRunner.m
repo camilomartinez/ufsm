@@ -1,1 +1,6 @@
-results = runtests('countLinesTest');
+% Initialization
+clear;
+clc;
+% Run test suite
+runtests('countLinesTest');
+runtests('parseDataTest');
