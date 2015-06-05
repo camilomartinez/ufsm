@@ -61,16 +61,3 @@ function setupOnce(testCase)  % do not change function name
     ];
     testCase.TestData.testMatrix = spconvert(testMatrix);
 end
-
-function teardownOnce(testCase)  % do not change function name
-% change back to original path, for example
-end
-
-%% Optional fresh fixtures  
-function setup(testCase)  % do not change function name
-% open a figure, for example
-end
-
-function teardown(testCase)  % do not change function name
-% close figure, for example
-end
