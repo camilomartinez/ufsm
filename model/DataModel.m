@@ -7,7 +7,8 @@ classdef DataModel
         NumPreferences
     end
     
-    properties (SetAccess = private)
+    properties (GetAccess=private, SetAccess = private)        
+        % Not meant to be used directly
         Urm
     end
     
