@@ -1,10 +1,21 @@
-%% Test1: count of lines of a delimited file
-% setup
-testFile = 'test_0.csv';
+%% Main function to generate tests
+function tests = DataModelTest
+tests = functiontests(localfunctions);
+end
 
-% preconditions
-assert(exist(testFile,'file')==2, 'Test file does not exist')
+%% Test Functions
+function countPreferencesTest(testCase)
+    dataModel = DataModel(testCase.TestData.testFile);
+    correct = 20000;
+    testCase.verifyEqual(dataModel.NumPreferences, correct, ...
+        sprintf('The number of preferences in the test file is %i not %i',...
+            correct, dataModel.NumPreferences))
+end
 
-dataModel = DataModel(testFile);
-correct = 20000;
-assert(dataModel.NumPreferences == correct, sprintf('The number of preferences in the test file is %i not %i', correct, dataModel.NumPreferences))
+%% Optional file fixtures  
+function setupOnce(testCase)  % do not change function name
+    testFile = 'test_0.csv';
+    % preconditions
+    assert(exist(testFile,'file')==2, 'Test file does not exist')
+    testCase.TestData.testFile = testFile;
+end
