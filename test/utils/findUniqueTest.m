@@ -19,6 +19,18 @@ function correctUniqueCount3Test(testCase)
     verifyEqual(testCase,length(uniqueValues),5)
 end
 
+function errorInputOutOfRange1Test(testCase)
+    testCase.verifyError(@() findUnique(speye(3), 4),'findUnique:InputOutOfRange')
+end
+
+function errorInputOutOfRange2Test(testCase)
+    testCase.verifyError(@() findUnique(speye(3), 0),'findUnique:InputOutOfRange')
+end
+
+function errorInputOutOfRange3Test(testCase)
+    testCase.verifyError(@() findUnique(speye(3), -1),'findUnique:InputOutOfRange')
+end
+
 %% Optional file fixtures  
 function setupOnce(testCase)  % do not change function name
     testMatrix = [ 
