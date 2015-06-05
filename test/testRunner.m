@@ -5,3 +5,4 @@ clc;
 runtests('countLinesTest');
 runtests('parseDataTest');
 runtests('DataModelTest');
+runtests('findUniqueTest');
