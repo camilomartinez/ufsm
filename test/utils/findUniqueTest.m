@@ -19,6 +19,24 @@ function correctUniqueCount3Test(testCase)
     verifyEqual(testCase,length(uniqueValues),5)
 end
 
+function correctUniqueElements1Test(testCase)
+    actual = findUnique(testCase.TestData.testMatrix, 1);
+    expected = [1; 2; 3];
+    verifyEqual(testCase,actual,expected)
+end
+
+function correctUniqueElements2Test(testCase)
+    actual = findUnique(testCase.TestData.testMatrix, 2);
+    expected = [1; 9];
+    verifyEqual(testCase,actual,expected)
+end
+
+function correctUniqueElements3Test(testCase)
+    actual = findUnique(testCase.TestData.testMatrix, 3);
+    expected = [1; 2; 3; 5; 6];
+    verifyEqual(testCase,actual,expected)
+end
+
 function errorInputOutOfRange1Test(testCase)
     testCase.verifyError(@() findUnique(speye(3), 4),'findUnique:InputOutOfRange')
 end
@@ -35,11 +53,11 @@ end
 function setupOnce(testCase)  % do not change function name
     testMatrix = [ 
         1   1   1
-        2   2   2
+        2   9   2
         3   1   3
-        1   2   4
+        1   9   6
         2   1   5
-        3   2   1
+        3   9   1
     ];
     testCase.TestData.testMatrix = spconvert(testMatrix);
 end
