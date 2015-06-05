@@ -4,9 +4,19 @@ tests = functiontests(localfunctions);
 end
 
 %% Test Functions
-function correctUniqueCountTest(testCase)
+function correctUniqueCount1Test(testCase)
     uniqueRows = findUnique(testCase.TestData.testMatrix, 1);
     verifyEqual(testCase,length(uniqueRows),3)
+end
+
+function correctUniqueCount2Test(testCase)
+    uniqueColumns = findUnique(testCase.TestData.testMatrix, 2);
+    verifyEqual(testCase,length(uniqueColumns),2)
+end
+
+function correctUniqueCount3Test(testCase)
+    uniqueValues = findUnique(testCase.TestData.testMatrix, 3);
+    verifyEqual(testCase,length(uniqueValues),5)
 end
 
 %% Optional file fixtures  
@@ -14,10 +24,10 @@ function setupOnce(testCase)  % do not change function name
     testMatrix = [ 
         1   1   1
         2   2   2
-        3   3   3
-        1   3   4
+        3   1   3
+        1   2   4
         2   1   5
-        2   3   1
+        3   2   1
     ];
     testCase.TestData.testMatrix = spconvert(testMatrix);
 end
