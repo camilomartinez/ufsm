@@ -1,0 +1,10 @@
+function [ output_args ] = item_item_cosine_scorer( ii_model, test_users, profiles, params )
+%ITEM_ITEM_COSINE_SCORER Summary of this function goes here
+
+    scores = cell2mat(profiles) * ii_model;
+   
+    
+
+
+end
+
