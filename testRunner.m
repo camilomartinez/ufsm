@@ -2,7 +2,6 @@
 clear;
 clc;
 % Run test suite
-runtests('countLinesTest');
-runtests('parseDataTest');
-runtests('DataModelTest');
-runtests('findUniqueTest');
+% Run test suite
+results = runtests('test','Recursively',true);
+table(results)
