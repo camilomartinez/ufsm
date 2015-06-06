@@ -23,7 +23,12 @@ classdef PopularRecommender < Recommender
         end
         
         % Generate recommendations for the given user
-        items = recommendForUser(obj, userId)
+        function items = recommendForUser(obj, userId)
+            notSeen = obj.DataModel.itemsNotSeenByUser(userId);
+            itemCount = obj.ItemCount;
+            mask = ismember(itemCount(:,1), notSeen);
+            items = obj.ItemCount(mask, :);
+        end
     end
     
 end

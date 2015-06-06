@@ -6,11 +6,26 @@ end
 %% Test Functions
 function trainItemCountTest(testCase)
     recommender = testCase.TestData.recommender;
-    recommender.train();
     actual = recommender.ItemCount;
     expected = [ 2 2; 1 1; 3 1 ];
     testCase.verifyEqual(actual, expected,...
         'The item count is not correct after training');
+end
+
+function recommend1Test(testCase)
+    recommender = testCase.TestData.recommender;
+    actual = recommender.recommendForUser(1);
+    expected = [ 3 1 ];
+    testCase.verifyEqual(actual, expected,...
+        'The items recommended are not correct');
+end
+
+function recommend2Test(testCase)
+    recommender = testCase.TestData.recommender;
+    actual = recommender.recommendForUser(2);
+    expected = [ 1 1; 3 1 ];
+    testCase.verifyEqual(actual, expected,...
+        'The items recommended are not correct');
 end
 
 %% Optional fresh fixtures  
@@ -24,5 +39,6 @@ function setup(testCase)  % do not change function name
     ];
     dataModel.Urm = spconvert(testMatrix);
     recommender = PopularRecommender(dataModel);
+    recommender.train();    
     testCase.TestData.recommender = recommender;
 end
