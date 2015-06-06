@@ -3,27 +3,32 @@ classdef DataModel < handle
     %   Mainly provides access to the User Rating Matrix (URM)
     %   read from the input files, stored as a sparse matrix
     
-    properties (GetAccess=private, SetAccess = private)        
-        % Not meant to be used directly
-        Urm
-    end
-    
     properties (SetAccess = private)
         Items
         NumPreferences
     end
     
     properties
+        % Not meant to be used directly
+        % Except for testing
+        Urm
     end
     
     methods
         %Constructor
         function obj = DataModel( filename )
             urm = parseData(filename, '\t');
-            % Save immutable data
             obj.Urm = urm;
-            obj.Items = findUnique(urm, 2);
-            obj.NumPreferences = nnz(obj.Urm);
+        end
+        
+        %Updates dependent value on user rating matrix change
+        %Main use case is testing
+        function set.Urm(obj, value)
+            % Save immutable data
+            obj.Urm = value;
+            % Not using dependent to avoid doing this operations each time
+            obj.Items = findUnique(value, 2)';
+            obj.NumPreferences = nnz(value);
         end
         
         %Retrieves the items with at least one preference
@@ -37,6 +42,12 @@ classdef DataModel < handle
             end
             row = obj.Urm(userId,:);
             [~, items, ~] = find(row);
+        end
+        
+        %Retrieves the known items without any preference from the user
+        function items = itemsNotSeenByUser( obj, userId )
+            seen = obj.itemsSeenByUser(userId);
+            items = setdiff(obj.Items, seen);
         end
     end
     
