@@ -31,7 +31,7 @@ classdef DataModel < handle
             % Save immutable data
             obj.Urm = value;
             % Not using dependent to avoid doing this operations each time
-            obj.Items = findUnique(value, 2)';
+            obj.Items = findUnique(value, 2);
             obj.NumPreferences = nnz(value);
         end
         

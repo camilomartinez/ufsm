@@ -14,6 +14,6 @@ switch dim
        error('findUnique:InputOutOfRange',...
            'Dimension %i is not between 1 and 3',dim);
 end
-uniqueIndices = unique(indices);
+uniqueIndices = unique(indices)';
 end
 

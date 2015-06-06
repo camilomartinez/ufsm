@@ -21,19 +21,19 @@ end
 
 function correctUniqueElements1Test(testCase)
     actual = findUnique(testCase.TestData.testMatrix, 1);
-    expected = [1; 2; 3];
+    expected = [1 2 3];
     verifyEqual(testCase,actual,expected)
 end
 
 function correctUniqueElements2Test(testCase)
     actual = findUnique(testCase.TestData.testMatrix, 2);
-    expected = [1; 9];
+    expected = [1 9];
     verifyEqual(testCase,actual,expected)
 end
 
 function correctUniqueElements3Test(testCase)
     actual = findUnique(testCase.TestData.testMatrix, 3);
-    expected = [1; 2; 3; 5; 6];
+    expected = [1 2 3 5 6];
     verifyEqual(testCase,actual,expected)
 end
 

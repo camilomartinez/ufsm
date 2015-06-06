@@ -12,6 +12,14 @@ function allDifferentCountTest(testCase)
         'The value count for different counts is not correct');
 end
 
+function equalCountTest(testCase)
+    values = [1 3 2 3 2];
+    expected = [ 2 2; 3 2; 1 1 ];
+    actual = countValues(values);
+    testCase.verifyEqual(actual, expected,...
+        'The value count for equal counts is not correct');
+end
+
 function singleValueTest(testCase)
     values = [10];
     expected = [ 10 1 ];
