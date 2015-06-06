@@ -37,18 +37,12 @@ end
 
 function itemsSeenByUser2Test(testCase)
     dataModel = testCase.TestData.dataModel;
-    testMatrix = [
-        1   1   1
-        1   2   2
-        2   3   1
-        4   4   4
-        ];
-    dataModel.Urm = spconvert(testMatrix);
-    userId = 1;
-    % Items not seen by one
-    expected = [3 4];
-    testCase.verifyEqual(dataModel.itemsNotSeenByUser(userId), expected, ...
-        'The items not seen by the user are not correct')
+    userId = 9;
+    % Expected obtained offline
+    % All the items with at least one preference for user 1
+    expected = [6 201 286 615 690];
+    testCase.verifyEqual(dataModel.itemsSeenByUser(userId), expected, ...
+        'The items seen by the user are not correct')
 end
 
 function itemsSeenByUserError1Test(testCase)
@@ -71,16 +65,18 @@ end
 
 function itemsNotSeenByUser1Test(testCase)
     dataModel = testCase.TestData.dataModel;
+    testMatrix = [
+        1   1   1
+        1   2   2
+        2   3   1
+        4   4   4
+        ];
+    dataModel.Urm = spconvert(testMatrix);
     userId = 1;
-    % Expected obtained offline
-    % All the items with at least one preference for user 1
-    expected =  ...
-    [9 11 18 26 31 34 37 40 45 53 54 61 73 80 81 85 88 101 107 110 111 ...
-     112 113 119 123 133 141 142 150 151 153 155 167 171 173 174 178 181 ...
-     185 186 192 195 202 215 217 230 232 236 237 238 243 244 245 260 264 ...
-     ];
-    testCase.verifyEqual(dataModel.itemsSeenByUser(userId), expected, ...
-        'The items seen by the user are not correct')
+    % Items not seen by one
+    expected = [3 4];
+    testCase.verifyEqual(dataModel.itemsNotSeenByUser(userId), expected, ...
+        'The items not seen by the user are not correct')
 end
 
 %% Optional file fixtures  
