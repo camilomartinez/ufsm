@@ -25,6 +25,13 @@ classdef DataModel
             obj.Items = findUnique(urm, 2);
             obj.NumPreferences = nnz(obj.Urm);
         end
+        
+        %Retrieves the items with at least one preference
+        %for the given user
+        function items = itemsSeenByUser( obj, userId )
+            row = obj.Urm(userId,:);
+            [~, items, ~] = find(row);
+        end
     end
     
 end
