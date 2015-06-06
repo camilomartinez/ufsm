@@ -21,7 +21,7 @@ function itemsTest(testCase)
         'The items are not extracted correctly from the data model')
 end
 
-function itemsSeenByUserTest(testCase)
+function itemsSeenByUser1Test(testCase)
     dataModel = testCase.TestData.dataModel;
     userId = 1;
     % Expected obtained offline
@@ -33,6 +33,34 @@ function itemsSeenByUserTest(testCase)
      ];
     testCase.verifyEqual(dataModel.itemsSeenByUser(userId), expected, ...
         'The items seen by the user are not correct')
+end
+
+function itemsSeenByUser2Test(testCase)
+    dataModel = testCase.TestData.dataModel;
+    userId = 9;
+    % Expected obtained offline
+    % All the items with at least one preference for user 1
+    expected = [6 201 286 615 690];
+    testCase.verifyEqual(dataModel.itemsSeenByUser(userId), expected, ...
+        'The items seen by the user are not correct')
+end
+
+function itemsSeenByUserError1Test(testCase)
+    dataModel = testCase.TestData.dataModel;
+    userId = 950;
+    % Expect error as there are only 943 users in the test file
+    testCase.verifyError(@() dataModel.itemsSeenByUser(userId),...
+        'DataModel:itemsSeenByUser:InputOutOfRange',...
+        'There should be an error if the user id is not valid')
+end
+
+function itemsSeenByUserError2Test(testCase)
+    dataModel = testCase.TestData.dataModel;
+    userId = -5;
+    % Expect error as there are only 943 users in the test file
+    testCase.verifyError(@() dataModel.itemsSeenByUser(userId),...
+        'DataModel:itemsSeenByUser:InputOutOfRange',...
+        'There should be an error if the user id is not valid')
 end
 
 %% Optional file fixtures  

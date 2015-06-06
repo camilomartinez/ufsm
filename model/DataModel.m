@@ -1,4 +1,4 @@
-classdef DataModel
+classdef DataModel < handle
     %DATAMODEL Holds all input data available for recommendation
     %   Mainly provides access to the User Rating Matrix (URM)
     %   read from the input files, stored as a sparse matrix
@@ -29,6 +29,12 @@ classdef DataModel
         %Retrieves the items with at least one preference
         %for the given user
         function items = itemsSeenByUser( obj, userId )
+            nRows = size(obj.Urm, 1);
+            if (userId < 1 || userId > nRows)
+                error('DataModel:itemsSeenByUser:InputOutOfRange',...
+                    'The user id %i is not between 1 and %i',...
+                    userId, nRows);
+            end
             row = obj.Urm(userId,:);
             [~, items, ~] = find(row);
         end
