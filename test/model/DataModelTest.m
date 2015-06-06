@@ -3,7 +3,12 @@ function tests = DataModelTest
 tests = functiontests(localfunctions);
 end
 
-%% Test Functions
+%% Test Functions'
+function buildParameterlessTest(testCase)
+    dataModel = DataModel();
+    testCase.verifyClass(dataModel, 'DataModel');
+end
+
 function countPreferencesTest(testCase)
     dataModel = testCase.TestData.dataModel;
     correct = 20000;
@@ -64,7 +69,7 @@ function itemsSeenByUserError2Test(testCase)
 end
 
 function itemsNotSeenByUser1Test(testCase)
-    dataModel = testCase.TestData.dataModel;
+    dataModel = DataModel();
     testMatrix = [
         1   1   1
         1   2   2

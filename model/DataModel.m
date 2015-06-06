@@ -16,7 +16,11 @@ classdef DataModel < handle
     
     methods
         %Constructor
-        function obj = DataModel( filename )
+        function obj = DataModel(filename)
+            if (nargin == 0)
+                %Default constructor
+                return
+            end
             urm = parseData(filename, '\t');
             obj.Urm = urm;
         end
