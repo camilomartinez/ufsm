@@ -15,7 +15,7 @@ classdef PopularRecommender < Recommender
         end
         
         % Allow the recommender to train its internal model
-        function train(obj)
+        function trainModel(obj)
             urm = obj.DataModel.Urm;
             [~, seenItems, ~] = find(urm);
             % countValues expects a row vector
