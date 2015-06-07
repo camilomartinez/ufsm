@@ -7,7 +7,13 @@ classdef Recommender < handle
     end
     
     properties (SetAccess = private)
-        TrainTime
+        TrainingTime
+        RecommendationTime        
+        %Recommendations
+        %nUsers x 3 matrix with userId in column 1, itemId in column 2
+        %and score in column 3. The items within each user are ordered by
+        %score
+        Recommendations
     end
     
     methods
@@ -20,7 +26,22 @@ classdef Recommender < handle
         function train(obj)
             tic;
             obj.trainModel();
-            obj.TrainTime = toc;
+            obj.TrainingTime = toc;
+        end
+        
+        function recommend(obj)
+            tic;
+            obj.Recommendations = [];
+            for i = 1:obj.DataModel.NumUsers
+                userId = obj.DataModel.Users(i);
+                userRecommendations = obj.recommendForUser(userId);
+                nRecommendations = size(userRecommendations,1);
+                %Append the recommendations for this user
+                %The first column is the user id
+                obj.Recommendations = [obj.Recommendations;...
+                    userId * ones(nRecommendations,1), userRecommendations];
+            end
+            obj.RecommendationTime = toc;
         end
     end
     

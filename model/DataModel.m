@@ -5,6 +5,8 @@ classdef DataModel < handle
     
     properties (SetAccess = private)
         Items
+        Users
+        NumUsers
         NumPreferences
     end
     
@@ -31,6 +33,9 @@ classdef DataModel < handle
             % Save immutable data
             obj.Urm = value;
             % Not using dependent to avoid doing this operations each time
+            users = findUnique(value, 1);
+            obj.Users = users;
+            obj.NumUsers = length(users);
             obj.Items = findUnique(value, 2);
             obj.NumPreferences = nnz(value);
         end

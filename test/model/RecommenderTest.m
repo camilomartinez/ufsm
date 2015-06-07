@@ -4,13 +4,33 @@ tests = functiontests(localfunctions);
 end
 
 %% Test Functions
-function trainTimeTest(testCase)
+function trainingTimeTest(testCase)
     recommender = testCase.TestData.recommender;
-    testCase.verifyEmpty(recommender.TrainTime,...
-        'The train time is not initially undefined');
+    testCase.verifyEmpty(recommender.TrainingTime,...
+        'The training time is not initially undefined');
     recommender.train();
-    testCase.verifyGreaterThan(recommender.TrainTime,0,...
-        'The train time was not measured');
+    testCase.verifyGreaterThan(recommender.TrainingTime,0,...
+        'The training time was not measured');
+end
+
+function recommendationTimeTest(testCase)
+    recommender = testCase.TestData.recommender;
+    recommender.train();    
+    testCase.verifyEmpty(recommender.RecommendationTime,...
+        'The recommendation time is not initially undefined');
+    recommender.recommend();
+    testCase.verifyGreaterThan(recommender.RecommendationTime,0,...
+        'The recommendation time was not measured');
+end
+
+function recommendationsTest(testCase)
+    recommender = testCase.TestData.recommender;
+    recommender.train();    
+    testCase.verifyEmpty(recommender.Recommendations,...
+        'The recommendations are not initially undefined');
+    recommender.recommend();
+    testCase.verifyNotEmpty(recommender.Recommendations,...
+        'The recommendations are not done');
 end
 
 %% Optional fresh fixtures  

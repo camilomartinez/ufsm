@@ -84,6 +84,36 @@ function itemsNotSeenByUser1Test(testCase)
         'The items not seen by the user are not correct')
 end
 
+function usersTest(testCase)
+    dataModel = DataModel();
+    testMatrix = [
+        4   10  5
+        1   1   1
+        2   2   2
+        1   3   1
+        ];
+    dataModel.Urm = spconvert(testMatrix);
+    % User ids
+    expected = [1 2 4];
+    testCase.verifyEqual(dataModel.Users, expected, ...
+        'The users are not extracted correctly from the data model')
+end
+
+function numUsersTest(testCase)
+    dataModel = DataModel();
+    testMatrix = [
+        4   10  5
+        1   1   1
+        2   2   2
+        1   3   1
+        ];
+    dataModel.Urm = spconvert(testMatrix);
+    % Number of users
+    expected = 3;
+    testCase.verifyEqual(dataModel.NumUsers, expected, ...
+        'The number of users extracted is not correct')
+end
+
 %% Optional file fixtures  
 function setupOnce(testCase)  % do not change function name
     testFile = 'test_0.csv';
