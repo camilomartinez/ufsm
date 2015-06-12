@@ -8,6 +8,10 @@ if (isunix) %# Linux, mac
     numlines = str2double(result);
 elseif (ispc) %# Windows
     completePath = which(filename);
+    if (isempty(completePath))
+        %Fallback to filename if not in path
+        completePath = filename;
+    end
     numlines = str2double( perl('countLines.pl', completePath) );
 else
     error('Count lines works only on unix or windows operating systems');
