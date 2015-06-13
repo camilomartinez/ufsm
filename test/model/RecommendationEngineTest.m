@@ -16,19 +16,22 @@ end
 function recommendFoldsTest(testCase)
     engine = testCase.TestData.engine;
     recFolder = testCase.TestData.recommendationFolder;
-    engine.recommendFolds(1,...
+    engine.recommendFolds(2,...
         testCase.TestData.trainFolder, recFolder);
-    recFilePath = strcat(recFolder,'\recs_0.csv');
-    % Use java as interface is simpler
-    % returns bool coded as 1 if true
-    recFileExists = java.io.File(recFilePath).exists() == 1;
-    testCase.verifyTrue(recFileExists,...
-        'The recommendation file is not generated');
+    % Verify all recommendations files are created
+    for i=1:2
+        recFilePath = sprintf('%s\\recs_%i.csv',recFolder,i-1);
+        % Use java as interface is simpler
+        % returns bool coded as 1 if true
+        recFileExists = java.io.File(recFilePath).exists() == 1;
+        testCase.verifyTrue(recFileExists,...
+            sprintf('The recommendation file %i was not generated', i));
+    end
 end
 
 %% Optional file fixtures  
 function setupOnce(testCase)  % do not change function name
-    sampleDataFolder = 'C:\Code\Polimi\thesis\Matlab\data\rivalsample\';
+    sampleDataFolder = 'C:\Code\Polimi\thesis\Matlab\test\data\';
 	testCase.TestData.trainFolder = strcat(sampleDataFolder, 'model');
     testCase.TestData.recommendationFolder =...
         strcat(sampleDataFolder, 'recommendations');
