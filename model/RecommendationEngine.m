@@ -5,6 +5,10 @@ classdef RecommendationEngine < handle
     properties
         %Handle that returns a recommender given a data model
         RecommenderBuilder
+        %Benchmark times
+        TrainingTimePerFold
+        RecommendationTimePerFold        
+        WritingTimePerFold
     end
     
     properties (Access = private, Constant)
@@ -20,13 +24,25 @@ classdef RecommendationEngine < handle
         end
         
         function recommendFolds(obj, nFolds, trainFolder, recommendationFolder)
-            trainFilePath = obj.trainFilePathForFold(trainFolder, 1);
-            dataModel = DataModel(trainFilePath);
-            recommender = obj.RecommenderBuilder(dataModel);
-            recommender.train();
-            recommender.recommend();
-            recFilePath = obj.recFilePathForFold(recommendationFolder, 1);
-            dlmwrite(recFilePath, recommender.Recommendations, '\t');
+            obj.TrainingTimePerFold = zeros(1,nFolds);
+            obj.RecommendationTimePerFold = zeros(1,nFolds);
+            obj.WritingTimePerFold = zeros(1,nFolds);
+            for iFold = 1:nFolds
+                trainFilePath = obj.trainFilePathForFold(trainFolder, iFold);
+                dataModel = DataModel(trainFilePath);
+                recommender = obj.RecommenderBuilder(dataModel);
+                recommender.train();
+                % Save times for benchmark
+                obj.TrainingTimePerFold(iFold) = recommender.TrainingTime;
+                recommender.recommend();
+                % Save times for benchmark
+                obj.RecommendationTimePerFold(iFold) =...
+                    recommender.RecommendationTime;
+                recFilePath = obj.recFilePathForFold(recommendationFolder, iFold);
+                tic;
+                dlmwrite(recFilePath, recommender.Recommendations, '\t');
+                obj.WritingTimePerFold(iFold) = toc;
+            end
         end
     end
     
