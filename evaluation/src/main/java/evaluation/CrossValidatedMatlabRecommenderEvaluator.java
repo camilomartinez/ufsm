@@ -1,5 +1,10 @@
 package evaluation;
 
+import matlabcontrol.MatlabConnectionException;
+import matlabcontrol.MatlabInvocationException;
+import matlabcontrol.MatlabProxy;
+import matlabcontrol.MatlabProxyFactory;
+import matlabcontrol.MatlabProxyFactoryOptions;
 import net.recommenders.rival.core.DataModel;
 import net.recommenders.rival.core.DataModelUtils;
 import net.recommenders.rival.core.Parser;
@@ -8,30 +13,22 @@ import net.recommenders.rival.evaluation.metric.ranking.NDCG;
 import net.recommenders.rival.evaluation.metric.ranking.Precision;
 import net.recommenders.rival.evaluation.strategy.EvaluationStrategy;
 import net.recommenders.rival.examples.DataDownloader;
-import net.recommenders.rival.recommend.frameworks.RecommenderIO;
-import net.recommenders.rival.recommend.frameworks.mahout.GenericRecommenderBuilder;
-import net.recommenders.rival.recommend.frameworks.mahout.exceptions.RecommenderException;
 import net.recommenders.rival.split.parser.MovielensParser;
 import net.recommenders.rival.split.splitter.CrossValidationSplitter;
-import org.apache.mahout.cf.taste.common.TasteException;
-import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
-import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
-import org.apache.mahout.cf.taste.recommender.RecommendedItem;
-import org.apache.mahout.cf.taste.recommender.Recommender;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
+
 import net.recommenders.rival.evaluation.metric.error.RMSE;
 
 /**
- * RiVal Movielens100k Mahout Example
+ * RiVal Movielens100k Matlab call Example
  *
- * @author <a href="http://github.com/alansaid">Alan</a>
+ * @author <a href="http://github.com/camilomartinez">Camilo</a>
  */
-public class CrossValidatedMahoutKNNRecommenderEvaluator {
+public class CrossValidatedMatlabRecommenderEvaluator {
 
     public static void main(String[] args) {
         String url = "http://files.grouplens.org/datasets/movielens/ml-100k.zip";
@@ -86,45 +83,38 @@ public class CrossValidatedMahoutKNNRecommenderEvaluator {
     }
 
     public static void recommend(int nFolds, String inPath, String outPath) {
-        for (int i = 0; i < nFolds; i++) {
-            org.apache.mahout.cf.taste.model.DataModel trainModel = null;
-            org.apache.mahout.cf.taste.model.DataModel testModel = null;
-            try {
-                trainModel = new FileDataModel(new File(inPath + "train_" + i + ".csv"));
-                testModel = new FileDataModel(new File(inPath + "test_" + i + ".csv"));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            GenericRecommenderBuilder grb = new GenericRecommenderBuilder();
-            String recommenderClass = "org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender";
-            String similarityClass = "org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity";
-            int neighborhoodSize = 50;
-            Recommender recommender = null;
-            try {
-                recommender = grb.buildRecommender(trainModel, recommenderClass, similarityClass, neighborhoodSize);
-            } catch (TasteException e) {
-                e.printStackTrace();
-            } catch (RecommenderException e) {
-                e.printStackTrace();
-            }
-
-            String fileName = "recs_" + i + ".csv";
-
-            LongPrimitiveIterator users = null;
-            try {
-                users = testModel.getUserIDs();
-                boolean createFile = true;
-                while (users.hasNext()) {
-                    long u = users.nextLong();
-                    List<RecommendedItem> items = recommender.recommend(u, trainModel.getNumItems());
-                    RecommenderIO.writeData(u, items, outPath, fileName, !createFile);
-                    createFile = false;
-                }
-            } catch (TasteException e) {
-                e.printStackTrace();
-            }
-        }
+    	// Uses MatlabControl library available at
+    	// https://code.google.com/p/matlabcontrol/
+    	// Prepare command
+    	String recommender = "@PopularRecommender";
+    	String inFullPath, outFullPath, command = null;
+		try {
+			inFullPath = new File(inPath).getCanonicalPath();
+			outFullPath = new File(outPath).getCanonicalPath();
+			command = String.format("recommend(%s, %d, '%s', '%s')",
+	    			recommender,
+	    			nFolds,
+	    			inFullPath,
+	    			outFullPath);	    	
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	// Run Matlab only showing results
+    	// Faster to start
+    	MatlabProxyFactoryOptions options = new MatlabProxyFactoryOptions.Builder().setHidden(true).build();
+    	//Create a proxy, which we will use to control MATLAB
+    	MatlabProxyFactory factory = new MatlabProxyFactory(options);
+        MatlabProxy proxy;
+		try {
+			proxy = factory.getProxy();
+			proxy.eval(command);
+			//Disconnect the proxy from MATLAB
+	        proxy.disconnect(); 
+		} catch (MatlabConnectionException e) {
+			e.printStackTrace();
+		} catch (MatlabInvocationException e) {
+			e.printStackTrace();
+		}        
     }
 
     @SuppressWarnings("unchecked")

@@ -12,7 +12,7 @@ classdef RecommendationEngine < handle
     end
     
     properties (Access = private, Constant)
-        FileFormat = '%s\\%s_%i.csv';
+        FileFormat = '%s_%i.csv';
         RecFileName = 'recs';
         TrainFileName = 'train';
     end
@@ -52,13 +52,13 @@ classdef RecommendationEngine < handle
     
     methods(Access = private)
         function path = trainFilePathForFold(obj, trainFolder, i)
-            path = sprintf(obj.FileFormat,...
-                trainFolder, obj.TrainFileName, i-1);
+            fileName = sprintf(obj.FileFormat, obj.TrainFileName, i-1);
+            path = fullfile(trainFolder, fileName);
         end
         
         function path = recFilePathForFold(obj, recFolder, i)
-            path = sprintf(obj.FileFormat,...
-                recFolder, obj.RecFileName, i-1);
+            fileName = sprintf(obj.FileFormat, obj.RecFileName, i-1);
+            path = fullfile(recFolder, fileName);
         end
     end
 end
