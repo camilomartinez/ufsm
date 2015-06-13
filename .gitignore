@@ -1,3 +1,7 @@
 *.asv
 data/details/urm.dat
 data/lsaModel.mat
+data/rivalsample/recommendations/
+test/data/recommendations/
+evaluation/data/
+*.prefs

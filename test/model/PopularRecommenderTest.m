@@ -12,20 +12,33 @@ function trainItemCountTest(testCase)
         'The item count is not correct after training');
 end
 
-function recommend1Test(testCase)
+function recommendForUser1Test(testCase)
     recommender = testCase.TestData.recommender;
-    actual = recommender.recommendForUser(1);
     expected = [ 3 1 ];
-    testCase.verifyEqual(actual, expected,...
+    testCase.verifyEqual(recommender.recommendForUser(1), expected,...
         'The items recommended are not correct');
 end
 
-function recommend2Test(testCase)
+function recommendForUser2Test(testCase)
     recommender = testCase.TestData.recommender;
-    actual = recommender.recommendForUser(2);
     expected = [ 1 1; 3 1 ];
-    testCase.verifyEqual(actual, expected,...
+    testCase.verifyEqual(recommender.recommendForUser(2), expected,...
         'The items recommended are not correct');
+end
+
+function recommendTest(testCase)
+    recommender = testCase.TestData.recommender;
+    % Recommendations for each user
+    expected = [
+        1   3   1
+        2   1   1
+        2   3   1
+        4   2   2
+        4   1   1   
+    ];
+    recommender.recommend();    
+    testCase.verifyEqual(recommender.Recommendations, expected,...
+        'The items recommended for all users are not correct');
 end
 
 %% Optional fresh fixtures  

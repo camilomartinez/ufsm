@@ -15,7 +15,7 @@ classdef PopularRecommender < Recommender
         end
         
         % Allow the recommender to train its internal model
-        function train(obj)
+        function trainModel(obj)
             urm = obj.DataModel.Urm;
             [~, seenItems, ~] = find(urm);
             % countValues expects a row vector
@@ -28,6 +28,9 @@ classdef PopularRecommender < Recommender
             itemCount = obj.ItemCount;
             mask = ismember(itemCount(:,1), notSeen);
             items = obj.ItemCount(mask, :);
+            % Recommend up to 100 items
+            sizeLimit = min(100, size(items,1));
+            items = items(1:sizeLimit, :);
         end
     end
     
