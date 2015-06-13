@@ -27,6 +27,10 @@ classdef RecommendationEngine < handle
             obj.TrainingTimePerFold = zeros(1,nFolds);
             obj.RecommendationTimePerFold = zeros(1,nFolds);
             obj.WritingTimePerFold = zeros(1,nFolds);
+            % Make sure the output folder exists
+            if ~isequal(exist(recommendationFolder, 'dir'),7)
+                mkdir(recommendationFolder);
+            end
             for iFold = 1:nFolds
                 trainFilePath = obj.trainFilePathForFold(trainFolder, iFold);
                 dataModel = DataModel(trainFilePath);
