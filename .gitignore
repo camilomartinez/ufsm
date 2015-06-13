@@ -5,3 +5,4 @@ data/rivalsample/recommendations/
 test/data/recommendations/
 evaluation/data/
 *.prefs
+evaluation/bin/
