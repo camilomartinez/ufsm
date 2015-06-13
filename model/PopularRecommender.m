@@ -28,6 +28,9 @@ classdef PopularRecommender < Recommender
             itemCount = obj.ItemCount;
             mask = ismember(itemCount(:,1), notSeen);
             items = obj.ItemCount(mask, :);
+            % Recommend up to 100 items
+            sizeLimit = min(100, length(items));
+            items = items(1:sizeLimit);
         end
     end
     
