@@ -18,7 +18,8 @@ classdef ContentModel < handle
                 return
             end
             % For the time just use a matlab matrix file
-            obj.Icm = load(filename);
+            load(filename);
+            obj.Icm = icm_idf;
         end
     end
     
