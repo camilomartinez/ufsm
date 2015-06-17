@@ -6,3 +6,7 @@ test/data/recommendations/
 evaluation/data/
 *.prefs
 evaluation/bin/
+preprocessing/.idea/
+preprocessing/itemcache_icm.dat
+preprocessing/urm.dat
+preprocessing/urmCache.dat
