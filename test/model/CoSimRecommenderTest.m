@@ -15,6 +15,13 @@ function trainModelTest(testCase)
     testCase.verifyEqual(recommender.ItemItemSimilarity, expected,...
         'Computed item item similarities are not correct');
 end
+
+function recommendForUserTest(testCase)
+    recommender = testCase.TestData.recommender;
+    expected = [ 3 1; 1 0 ];
+    testCase.verifyEqual(recommender.recommendForUser(2), expected,...
+        'The items recommended are not correct');
+end
 %% Optional fresh fixtures  
 function setup(testCase)  % do not change function name
     dataModel = DataModel();

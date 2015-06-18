@@ -35,12 +35,23 @@ classdef CoSimRecommender < ContentBasedRecommender
         
         % Generate recommendations for the given user
         function itemsWithScore = recommendForUser(obj, userId)
+            notSeen = obj.DataModel.itemsNotSeenByUser(userId);            
+            seen = obj.DataModel.itemsSeenByUser(userId);
+            % result(nNotSeen x 1) = sim (nNotSeen x nItems) * (ratings (1 x nItems))'
+            weigthedRatings = obj.ItemItemSimilarity(notSeen,:) * obj.DataModel.Urm(userId,:)';
+            % Make sure to sum along columns to have output nNotSeen x 1
+            sumRatings = sum(obj.ItemItemSimilarity(notSeen, seen), 2);
+            % result(nNotSeen x 1)
+            predictedRatings = weigthedRatings ./ sumRatings;
+            % Make sure any errors are cleared
+            predictedRatings(isnan(predictedRatings)) = 0;
+            itemsWithScore = sortrows([notSeen' predictedRatings], -2);
         end
     end
     
     methods(Access = private)        
         % a and b are expected to be vectors
-        function sim = similarity(obj, a, b)
+        function sim = similarity(~, a, b)
             sim = dot(a, b) / (norm(a) * norm(b));
         end
     end
