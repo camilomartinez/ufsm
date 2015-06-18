@@ -6,6 +6,7 @@ classdef DataModel < handle
     properties (SetAccess = private)
         Items
         Users
+        NumItems
         NumUsers
         NumPreferences
     end
@@ -36,7 +37,9 @@ classdef DataModel < handle
             users = findUnique(value, 1);
             obj.Users = users;
             obj.NumUsers = length(users);
-            obj.Items = findUnique(value, 2);
+            items = findUnique(value, 2);
+            obj.Items = items;
+            obj.NumItems = length(items);
             obj.NumPreferences = nnz(value);
         end
         
