@@ -7,18 +7,59 @@ end
 function trainModelTest(testCase)
 	recommender = testCase.TestData.recommender;
     % Expected item to item similarities
-    expected = [
-        1   0   0
-        0   1   1
-        0   1   1
-    ];
+    %expected = [
+    %    1   0   0
+    %    0   1   1
+    %    0   1   1
+    %];
+    expected = spconvert([
+        1   1   1
+        2   2   1
+        3   2   1
+        2   3   1
+        3   3   1
+    ]);
     testCase.verifyEqual(recommender.ItemItemSimilarity, expected,...
         'Computed item item similarities are not correct');
 end
 
-function recommendForUserTest(testCase)
+function recommendForUser1Test(testCase)
     recommender = testCase.TestData.recommender;
     expected = [ 3 1; 1 0 ];
+    testCase.verifyEqual(recommender.recommendForUser(2), expected,...
+        'The items recommended are not correct');
+end
+
+% Test when items in train are less than icm
+function recommendForUser2Test(testCase)
+    dataModel = DataModel();
+    urm = [
+        1   1   1
+        1   7   2
+        2   7   1
+        4   4   4
+    ];
+    dataModel.Urm = spconvert(urm);
+    contentModel = ContentModel();
+    % Icm full matrix
+    %    0   1   2.7
+    %    0.5 0   0
+    icm = [
+        1   7   1
+        1   4   2.7
+        2   1   0.5
+        2   3   0.2
+        2   5   0.3
+        1   6   0.4
+        2   2   0.9
+        1   8   1
+    ];
+    contentModel.Icm = spconvert(icm);
+    recommender = CoSimRecommender(dataModel, contentModel);
+    recommender.train();    
+    testCase.TestData.recommender = recommender;
+    recommender = testCase.TestData.recommender;
+    expected = [ 4 1; 1 0 ];
     testCase.verifyEqual(recommender.recommendForUser(2), expected,...
         'The items recommended are not correct');
 end

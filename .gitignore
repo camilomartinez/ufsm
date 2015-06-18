@@ -11,3 +11,5 @@ preprocessing/itemcache_icm.dat
 preprocessing/urm.dat
 preprocessing/urmCache.dat
 data/urmCache.dat
+data/details/urmCache_short.dat
+data/details/urmCache.dat

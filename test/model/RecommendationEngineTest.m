@@ -29,6 +29,20 @@ function recommendFoldsTest(testCase)
     end
 end
 
+function isContentBasedFalseTest(testCase)
+    builder = @PopularRecommender;
+    engine = RecommendationEngine(builder);    
+    testCase.verifyFalse(engine.IsContentBased,...
+        'Popular recommender is not content based')
+end
+
+function isContentBasedTrueTest(testCase)
+    builder = @CoSimRecommender;
+    engine = RecommendationEngine(builder);    
+    testCase.verifyTrue(engine.IsContentBased,...
+        'Cosine similarity recommender is content based')
+end
+
 %% Optional file fixtures  
 function setupOnce(testCase)  % do not change function name
     sampleDataFolder = 'C:\Code\Polimi\thesis\Matlab\test\data\';

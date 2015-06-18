@@ -19,18 +19,10 @@ classdef CoSimRecommender < ContentBasedRecommender
         function trainModel(obj)
             icm = obj.ContentModel.Icm';
             % Item features are icm row vectors
-            nItems = obj.DataModel.NumItems;
-            % Initialize diagonal to one
-            similarities = diag(ones(1,nItems));
-            for iRow = 1:(nItems-1)
-                for jCol = (iRow+1):nItems
-                    sim = obj.similarity(icm(iRow,:), icm(jCol,:));
-                    similarities(iRow, jCol) = sim;
-                    % Symmetric  similarities
-                    similarities(jCol, iRow) = sim;
-                end
-            end
-            obj.ItemItemSimilarity = similarities;
+            % Compute fast cosine similarity
+            % Normalize each item feature vector
+            icm = normr(icm);
+            obj.ItemItemSimilarity = icm * icm';
         end
         
         % Generate recommendations for the given user
@@ -38,7 +30,7 @@ classdef CoSimRecommender < ContentBasedRecommender
             notSeen = obj.DataModel.itemsNotSeenByUser(userId);            
             seen = obj.DataModel.itemsSeenByUser(userId);
             % result(nNotSeen x 1) = sim (nNotSeen x nItems) * (ratings (1 x nItems))'
-            weigthedRatings = obj.ItemItemSimilarity(notSeen,:) * obj.DataModel.Urm(userId,:)';
+            weigthedRatings = full(obj.ItemItemSimilarity(notSeen,seen) * obj.DataModel.Urm(userId,seen)');
             % Make sure to sum along columns to have output nNotSeen x 1
             sumRatings = sum(obj.ItemItemSimilarity(notSeen, seen), 2);
             % result(nNotSeen x 1)
@@ -46,13 +38,6 @@ classdef CoSimRecommender < ContentBasedRecommender
             % Make sure any errors are cleared
             predictedRatings(isnan(predictedRatings)) = 0;
             itemsWithScore = sortrows([notSeen' predictedRatings], -2);
-        end
-    end
-    
-    methods(Access = private)        
-        % a and b are expected to be vectors
-        function sim = similarity(~, a, b)
-            sim = dot(a, b) / (norm(a) * norm(b));
         end
     end
     
