@@ -21,6 +21,12 @@ classdef ContentModel < handle
             load(filename);
             obj.Icm = icm_idf;
         end
+        
+        %Expect a row vector with item ids and output
+        %features as row vectors as well
+        function features = featuresForItems(obj, itemIds)
+            features = obj.Icm(:, itemIds)';
+        end
     end
     
 end
