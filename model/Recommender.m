@@ -3,6 +3,7 @@ classdef Recommender < handle
     %   Detailed explanation goes here
     
     properties
+        % User rating matrix information
         DataModel
     end
     
