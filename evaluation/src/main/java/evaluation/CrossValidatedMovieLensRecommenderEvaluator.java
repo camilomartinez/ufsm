@@ -28,7 +28,7 @@ import net.recommenders.rival.evaluation.metric.error.RMSE;
  *
  * @author <a href="http://github.com/camilomartinez">Camilo</a>
  */
-public class CrossValidatedMatlabRecommenderEvaluator {
+public class CrossValidatedMovieLensRecommenderEvaluator {
 
     public static void main(String[] args) {
         String url = "http://files.grouplens.org/datasets/movielens/ml-100k.zip";
