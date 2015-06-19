@@ -58,7 +58,8 @@ classdef RecommendationEngine < handle
                     recommender.RecommendationTime;
                 recFilePath = obj.recFilePathForFold(recommendationFolder, iFold);
                 tic;
-                dlmwrite(recFilePath, recommender.Recommendations, '\t');
+                dlmwrite(recFilePath, recommender.Recommendations,...
+                    'precision','%g','delimiter','\t');
                 obj.WritingTimePerFold(iFold) = toc;
             end
         end
