@@ -15,3 +15,8 @@ data/details/urmCache_short.dat
 data/details/urmCache.dat
 data/hetrec2011-movielens-2k-v2/
 data/details/urmCache_100.dat
+preprocessing/genre_cache.dat
+preprocessing/ml-hr_urm.dat
+preprocessing/movie_genres.dat
+preprocessing/movie_icm.dat
+preprocessing/user_ratedmovies.dat
