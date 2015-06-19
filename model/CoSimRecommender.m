@@ -21,8 +21,24 @@ classdef CoSimRecommender < ContentBasedRecommender
             % Item features are icm row vectors
             % Compute fast cosine similarity
             % Normalize each item feature vector
-            icm = normr(icm);
-            obj.ItemItemSimilarity = icm * icm';
+            % This will compute similarities for all items
+            % icm = normr(icm);
+            % Compute all the similarities
+            % obj.ItemItemSimilarity = icm * icm';
+            % This only compute similarities for seen items
+            items = obj.DataModel.Items;
+            nItems = obj.DataModel.NumItems;
+            nIcm = size(icm,1);
+            % Normalize feature vectors
+            normIcmItems = normr(icm(items, :));
+            % Compute similarities as dot product
+            similarities = full(normIcmItems * normIcmItems');
+            % Build a sparse matrix
+            rowIndices = reshape(repmat(items, nItems, 1), nItems^2, 1);
+            colIndices = repmat(items', nItems, 1);
+            values = reshape(similarities, nItems^2, 1);
+            obj.ItemItemSimilarity = sparse(rowIndices,...
+                colIndices, values, nIcm, nIcm);
         end
         
         % Generate recommendations for the given user

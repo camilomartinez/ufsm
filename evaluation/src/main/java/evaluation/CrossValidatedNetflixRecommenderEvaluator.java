@@ -13,6 +13,9 @@ import net.recommenders.rival.evaluation.metric.ranking.NDCG;
 import net.recommenders.rival.evaluation.metric.ranking.Precision;
 import net.recommenders.rival.evaluation.strategy.EvaluationStrategy;
 import net.recommenders.rival.examples.DataDownloader;
+import net.recommenders.rival.recommend.frameworks.RecommenderIO;
+import net.recommenders.rival.recommend.frameworks.mahout.GenericRecommenderBuilder;
+import net.recommenders.rival.recommend.frameworks.mahout.exceptions.RecommenderException;
 import net.recommenders.rival.split.parser.MovielensParser;
 import net.recommenders.rival.split.splitter.CrossValidationSplitter;
 
@@ -21,8 +24,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.mahout.cf.taste.common.TasteException;
+import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
+import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
+import org.apache.mahout.cf.taste.recommender.RecommendedItem;
+import org.apache.mahout.cf.taste.recommender.Recommender;
 
 import net.recommenders.rival.evaluation.metric.error.RMSE;
 
@@ -40,13 +49,18 @@ public class CrossValidatedNetflixRecommenderEvaluator {
         String matlabRecommender = "@CoSimRecommender";
         int nFolds = 5;
         prepareSplits(nFolds, "details/urmCache_short.dat", sourceFolder, modelPath);
-        recommend(nFolds, modelPath, recPath, matlabRecommender);
-        // the strategy files are (currently) being ignored
+        //Matlab
+        matlabRecommend(nFolds, modelPath, recPath, matlabRecommender);
         prepareStrategy(nFolds, modelPath, recPath, modelPath);
         evaluate(nFolds, modelPath, recPath);
-    }
+        //Mahout
+        mahoutRecommend(nFolds, modelPath, recPath);
+        prepareStrategy(nFolds, modelPath, recPath, modelPath);
+        evaluate(nFolds, modelPath, recPath);        
+    }    
 
     public static void prepareSplits(int nFolds, String inFile, String sourceFolder, String outPath) {
+    	System.out.println("Preparing splits:...................................");
     	String urmFile = new File(sourceFolder, inFile).getPath();
         String icmFile = new File(sourceFolder, "ICM_IDF.mat").getPath();
         Path icmPath = new java.io.File(icmFile).toPath();
@@ -99,7 +113,8 @@ public class CrossValidatedNetflixRecommenderEvaluator {
         
     }
 
-    public static void recommend(int nFolds, String inPath, String outPath, String matlabRecommender) {
+    public static void matlabRecommend(int nFolds, String inPath, String outPath, String matlabRecommender) {
+    	System.out.println("Recommending using Matlab:..........................");
     	// Uses MatlabControl library available at
     	// https://code.google.com/p/matlabcontrol/
     	// Prepare command
@@ -131,6 +146,49 @@ public class CrossValidatedNetflixRecommenderEvaluator {
 		} catch (MatlabInvocationException e) {
 			e.printStackTrace();
 		}        
+    }
+    
+    public static void mahoutRecommend(int nFolds, String inPath, String outPath) {
+    	System.out.println("Recommending using Mahout:..........................");
+    	for (int i = 0; i < nFolds; i++) {
+            org.apache.mahout.cf.taste.model.DataModel trainModel = null;
+            org.apache.mahout.cf.taste.model.DataModel testModel = null;
+            try {
+                trainModel = new FileDataModel(new File(inPath + "train_" + i + ".csv"));
+                testModel = new FileDataModel(new File(inPath + "test_" + i + ".csv"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            GenericRecommenderBuilder grb = new GenericRecommenderBuilder();
+            String recommenderClass = "org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender";
+            String similarityClass = "org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity";
+            int neighborhoodSize = 50;
+            Recommender recommender = null;
+            try {
+                recommender = grb.buildRecommender(trainModel, recommenderClass, similarityClass, neighborhoodSize);
+            } catch (TasteException e) {
+                e.printStackTrace();
+            } catch (RecommenderException e) {
+                e.printStackTrace();
+            }
+
+            String fileName = "recs_" + i + ".csv";
+
+            LongPrimitiveIterator users = null;
+            try {
+                users = testModel.getUserIDs();
+                boolean createFile = true;
+                while (users.hasNext()) {
+                    long u = users.nextLong();
+                    List<RecommendedItem> items = recommender.recommend(u, trainModel.getNumItems());
+                    RecommenderIO.writeData(u, items, outPath, fileName, !createFile);
+                    createFile = false;
+                }
+            } catch (TasteException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -172,6 +230,8 @@ public class CrossValidatedNetflixRecommenderEvaluator {
             DataModel<Long, Long> modelToEval = new DataModel<Long, Long>();
 
             for (Long user : recModel.getUsers()) {
+            	boolean isTestUser = testModel.getUsers().contains(user);
+            	if (!isTestUser) continue;
                 for (Long item : strategy.getCandidateItemsToRank(user)) {
                     if (recModel.getUserItemPreferences().get(user).containsKey(item)) {
                         modelToEval.addPreference(user, item, recModel.getUserItemPreferences().get(user).get(item));
