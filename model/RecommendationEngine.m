@@ -17,7 +17,7 @@ classdef RecommendationEngine < handle
         FileFormat = '%s_%i.csv';
         RecFileName = 'recs';
         TrainFileName = 'train';
-        ContentFileName = 'icm.mat';
+        ContentFileName = 'icm';
     end
     
     methods
@@ -72,13 +72,21 @@ classdef RecommendationEngine < handle
         end
         
         function path = contentFilePath(obj, trainFolder)
-            path = fullfile(trainFolder, obj.ContentFileName);
+            % Check if file is .mat
+            datFile = fullfile(trainFolder,...
+                sprintf('%s.dat', obj.ContentFileName));
+            if isequal(exist(datFile, 'file'),2)
+                path = datFile;
+            else
+                path = fullfile(trainFolder,...
+                    sprintf('%s.mat', obj.ContentFileName));
+            end
         end
         
         function path = recFilePathForFold(obj, recFolder, i)
             fileName = sprintf(obj.FileFormat, obj.RecFileName, i-1);
             path = fullfile(recFolder, fileName);
-        end        
+        end 
     end
 end
 
