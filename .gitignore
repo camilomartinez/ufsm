@@ -13,3 +13,5 @@ preprocessing/urmCache.dat
 data/urmCache.dat
 data/details/urmCache_short.dat
 data/details/urmCache.dat
+data/hetrec2011-movielens-2k-v2/
+data/details/urmCache_100.dat
