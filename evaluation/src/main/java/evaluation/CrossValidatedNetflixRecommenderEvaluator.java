@@ -50,11 +50,11 @@ public class CrossValidatedNetflixRecommenderEvaluator {
         int nFolds = 5;
         prepareSplits(nFolds, "details/urmCache_short.dat", sourceFolder, modelPath);
         //Matlab
-        matlabRecommend(nFolds, modelPath, recPath, matlabRecommender);
+        matlabRecommend(nFolds, modelPath, recPath, "@CoSimRecommender");
         prepareStrategy(nFolds, modelPath, recPath, modelPath);
         evaluate(nFolds, modelPath, recPath);
         //Mahout
-        mahoutRecommend(nFolds, modelPath, recPath);
+        matlabRecommend(nFolds, modelPath, recPath, "@PopularRecommender");
         prepareStrategy(nFolds, modelPath, recPath, modelPath);
         evaluate(nFolds, modelPath, recPath);        
     }    
@@ -114,7 +114,7 @@ public class CrossValidatedNetflixRecommenderEvaluator {
     }
 
     public static void matlabRecommend(int nFolds, String inPath, String outPath, String matlabRecommender) {
-    	System.out.println("Recommending using Matlab:..........................");
+    	System.out.println(String.format("Recommending using Matlab %s:..........................", matlabRecommender));
     	// Uses MatlabControl library available at
     	// https://code.google.com/p/matlabcontrol/
     	// Prepare command
