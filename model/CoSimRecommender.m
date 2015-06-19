@@ -17,7 +17,7 @@ classdef CoSimRecommender < ContentBasedRecommender
         
         % Train its internal model
         function trainModel(obj)
-            icm = obj.ContentModel.Icm';
+            icm = obj.ContentModel.Icm;
             % Item features are icm row vectors
             % Compute fast cosine similarity
             % Normalize each item feature vector

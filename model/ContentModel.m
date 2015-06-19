@@ -17,15 +17,17 @@ classdef ContentModel < handle
                 %Default constructor
                 return
             end
-            % For the time just use a matlab matrix file
-            load(filename);
-            obj.Icm = icm_idf;
-        end
-        
-        %Expect a row vector with item ids and output
-        %features as row vectors as well
-        function features = featuresForItems(obj, itemIds)
-            features = obj.Icm(:, itemIds)';
+            [~,~,ext] = fileparts(filename);
+            if (strcmp(ext, '.mat'))
+                % Just load a matlab matrix file
+                load(filename);
+                % Transpose to match item row vector convention
+                obj.Icm = icm_idf';
+            else
+                %Skip first row
+                obj.Icm = parseData(filename, '\t', true);
+            end
+            
         end
     end
     

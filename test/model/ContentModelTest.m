@@ -13,7 +13,14 @@ end
 function buildFromMatTest(testCase)
     model = ContentModel(testCase.TestData.testFile);
     testCase.verifyClass(model, 'ContentModel',...
-        'Content model was not build from a file');
+        'Content model was not build from a .mat file');
+end
+
+function buildFromDatTest(testCase)
+    testFile = 'icm.dat';
+    model = ContentModel(testFile);
+    testCase.verifyClass(model, 'ContentModel',...
+        'Content model was not build from a .dat file');
 end
 
 function icmTest(testCase)
@@ -22,26 +29,22 @@ function icmTest(testCase)
         'The item content matrix is not assigned as sparse');
 end
 
-function featuresForItemsTest(testCase)
-    contentModel = ContentModel();
-    % Icm full matrix
-    %    0   1   2.7
-    %    0.5 0   0
-    icm = [
-        1   2   1
-        1   3   2.7
-        2   1   0.5
-    ];
-    contentModel.Icm = spconvert(icm);
-    itemIds = [1 3];
-    % Sparse matrix
+function icmFromDatTest(testCase)
+    testFile = 'icm.dat';
+    model = ContentModel(testFile);
     expected = spconvert([
-        1   2   0.5
-        2   1   2.7
+        1	2	1
+        1	3	1
+        1	4	1
+        1	5	1
+        1	9	1
+        2	2	1
+        2	4	1
+        2	9	1
+        3	5	1
     ]);
-    actual = contentModel.featuresForItems(itemIds);
-    testCase.verifyEqual(actual, expected,...
-        'The features for given items are not correct');
+    testCase.verifyEqual(model.Icm, expected,...
+        'Item content matrix not load correctly from .dat file');
 end
 
 %% Optional file fixtures  
