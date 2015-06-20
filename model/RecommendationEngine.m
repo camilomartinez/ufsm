@@ -22,6 +22,9 @@ classdef RecommendationEngine < handle
         RecFileName = 'recs';
         TrainFileName = 'train';
         ContentFileName = 'icm';
+        % Number of recommendations lines
+        % buffered before writing
+        WriteEachNumLines = 50000;
     end
     
     properties (Access = private)
@@ -97,36 +100,67 @@ classdef RecommendationEngine < handle
             recFilePath = obj.recFilePathForFold(iFold);
             recommendationTime = 0;
             writingTime = 0;
-            writeEachNumLines = 50000;
+            nextLine = 1;
+            writeEachNumLines = obj.WriteEachNumLines;
+            allRecommendations = zeros(writeEachNumLines, 3);
+            recommendationsBuffer = [];
             firstWrite = true;
-            userRecommendations = [];
             % Recommend
             for i = 1:dataModel.NumUsers
-                userId = dataModel.Users(i);
                 recStopwatch = tic;
+                % Process previous iteration data
+                if ~isempty(recommendationsBuffer)
+                    nRecommendations = size(recommendationsBuffer,1);
+                    allRecommendations(1:nRecommendations, :) = ...
+                        recommendationsBuffer;
+                    recommendationsBuffer = [];
+                    nextLine = nRecommendations + 1;
+                end
+                % Get current user recommendations
+                userId = dataModel.Users(i);
                 recommendations = recommender.recommendForUser(userId, nRecommendationsPerUser);
                 nRecommendations = size(recommendations,1);
-                %Append the recommendations for this user
+                %Recommendations for this user
                 %The first column is the user id
-                userRecommendations =...
-                    [userRecommendations;...
-                    repmat(userId, nRecommendations,1) recommendations];
+                userRecommendations = ...
+                    [repmat(userId, nRecommendations,1) recommendations];
+                % Where to fit the current recommendations lines
+                finishLine = nextLine+nRecommendations-1;
+                if finishLine > writeEachNumLines
+                    lineRange = nextLine:writeEachNumLines;
+                    remaining = finishLine - writeEachNumLines;
+                    keepTillIndex = nRecommendations - remaining;
+                    allRecommendations(lineRange,:) = ...
+                        userRecommendations(1:keepTillIndex,:);
+                    remainingRange = (keepTillIndex+1):nRecommendations;
+                    recommendationsBuffer = ...
+                        userRecommendations(remainingRange,:);
+                    nextLine = finishLine + 1;
+                else
+                    lineRange = nextLine:finishLine;
+                    allRecommendations(lineRange,:) = userRecommendations;
+                    nextLine = finishLine + 1;    
+                end
                 % Accumulate recommendation time
                 recommendationTime = recommendationTime + toc(recStopwatch);
                 writeStopwatch = tic;
-                nLines = size(userRecommendations,1);
+                % Check if we need to flush
+                if finishLine >= writeEachNumLines                    
+                    obj.writeMatrix(recFilePath,allRecommendations,~firstWrite)
+                    firstWrite = false;
+                    % Matrix flushed
+                    nextLine = 1;
+                end
                 isLastUser = i == dataModel.NumUsers;
-                if nLines > writeEachNumLines || isLastUser
-                    if firstWrite
-                        % Don't append for first user
-                        dlmwrite(recFilePath, userRecommendations,...
-                            'precision','%g','delimiter','\t');
-                        firstWrite = false;
-                    else
-                        dlmwrite(recFilePath, userRecommendations,...
-                        'precision','%g','delimiter','\t', '-append');                        
+                if isLastUser
+                    %Write any pending recommendations only if not done
+                    alreadyWritten = finishLine >= writeEachNumLines;                    
+                    if ~alreadyWritten
+                        obj.writeMatrix(recFilePath,...
+                            allRecommendations(1:finishLine,:),~firstWrite)
                     end
-                    userRecommendations = [];
+                    %Don't leave buffer unwritten
+                    obj.writeMatrix(recFilePath,recommendationsBuffer,true)
                 end
                 % Accumulate writing time
                 writingTime = writingTime + toc(writeStopwatch);                
@@ -137,6 +171,16 @@ classdef RecommendationEngine < handle
             obj.WritingTimePerFold(iFold) = writingTime;
             fprintf('Fold %d: Recommendations written in %g s.\n',...
                 iFold, writingTime)
+        end
+        
+        function writeMatrix(~, filepath, recommendations, useAppend)
+            if useAppend
+                dlmwrite(filepath, recommendations,...
+                    'precision','%g','delimiter','\t', '-append');
+            else
+                dlmwrite(filepath, recommendations,...
+                    'precision','%g','delimiter','\t');
+            end
         end
         
         function path = trainFilePathForFold(obj, i)
