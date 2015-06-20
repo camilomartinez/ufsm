@@ -24,6 +24,10 @@ classdef RecommendationEngine < handle
         ContentFileName = 'icm';
     end
     
+    properties (Access = private)
+        ContentModelCache
+    end    
+    
     methods
         %Constructor
         function obj = RecommendationEngine(builder, trainFolder,...
@@ -49,40 +53,11 @@ classdef RecommendationEngine < handle
             % Create content model if required
             if obj.IsContentBased
                 contentFilePath = obj.contentFilePath();
-                contentModel = ContentModel(contentFilePath);
+                obj.ContentModelCache = ContentModel(contentFilePath);
             end
             disp('Content model created')
             for iFold = 1:nFolds
-                fprintf('Fold %d: Starting\n', iFold)
-                trainFilePath = obj.trainFilePathForFold(iFold);
-                dataModel = DataModel(trainFilePath);
-                fprintf('Fold %d: Data model created\n', iFold)
-                if obj.IsContentBased
-                    recommender = obj.RecommenderBuilder(dataModel, contentModel);
-                else
-                    recommender = obj.RecommenderBuilder(dataModel);
-                end
-                fprintf('Fold %d: Recommender created\n', iFold)
-                recommender.train();
-                % Save times for benchmark
-                trainingTime = recommender.TrainingTime;
-                obj.TrainingTimePerFold(iFold) = trainingTime;
-                fprintf('Fold %d: Recommender trained in %g s.\n',...
-                    iFold, trainingTime)
-                recommender.recommend();
-                % Save times for benchmark
-                recommendationTime = recommender.RecommendationTime;
-                obj.RecommendationTimePerFold(iFold) = recommendationTime;
-                fprintf('Fold %d: Recommendations done in %g s.\n',...
-                    iFold, recommendationTime)
-                recFilePath = obj.recFilePathForFold(iFold);
-                tic;
-                dlmwrite(recFilePath, recommender.Recommendations,...
-                    'precision','%g','delimiter','\t');
-                writingTime = toc;
-                obj.WritingTimePerFold(iFold) = writingTime;
-                fprintf('Fold %d: Recommendations written in %g s.\n',...
-                    iFold, writingTime)
+                obj.recommendFold(iFold);
             end
             totalTime = toc(recommendFoldsTime);
             obj.RecommendFoldsTime = totalTime;
@@ -91,7 +66,39 @@ classdef RecommendationEngine < handle
     end
     
     methods(Access = private)
-        function recommendFold(iFold)
+        function recommendFold(obj, iFold)
+            fprintf('Fold %d: Starting\n', iFold)
+            trainFilePath = obj.trainFilePathForFold(iFold);
+            dataModel = DataModel(trainFilePath);
+            fprintf('Fold %d: Data model created\n', iFold)
+            if obj.IsContentBased
+                recommender = obj.RecommenderBuilder(dataModel,...
+                    obj.ContentModelCache);
+            else
+                recommender = obj.RecommenderBuilder(dataModel);
+            end
+            fprintf('Fold %d: Recommender created\n', iFold)
+            % Train
+            recommender.train();
+            trainingTime = recommender.TrainingTime;
+            obj.TrainingTimePerFold(iFold) = trainingTime;
+            fprintf('Fold %d: Recommender trained in %g s.\n',...
+                iFold, trainingTime)
+            % Recommend
+            recommender.recommend();
+            recommendationTime = recommender.RecommendationTime;
+            obj.RecommendationTimePerFold(iFold) = recommendationTime;
+            fprintf('Fold %d: Recommendations done in %g s.\n',...
+                iFold, recommendationTime)
+            recFilePath = obj.recFilePathForFold(iFold);
+            %Write
+            tic;
+            dlmwrite(recFilePath, recommender.Recommendations,...
+                'precision','%g','delimiter','\t');
+            writingTime = toc;
+            obj.WritingTimePerFold(iFold) = writingTime;
+            fprintf('Fold %d: Recommendations written in %g s.\n',...
+                iFold, writingTime)
         end
         
         function path = trainFilePathForFold(obj, i)
