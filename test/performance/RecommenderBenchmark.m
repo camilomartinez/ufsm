@@ -9,8 +9,8 @@ filesToDelete = strcat(recFolder,'\recs_*.csv');
 delete(filesToDelete);
 %% Recommendation benchmark
 disp('-----------Baseline CoSimRecommender----------')
-engine = RecommendationEngine(@CoSimRecommender);
-engine.recommendFolds(5, trainFolder, recFolder);
+engine = RecommendationEngine(@CoSimRecommender, trainFolder, recFolder);
+engine.recommendFolds(5);
 disp('-----------Baseline results----------')
 disp('Training time per fold:')
 disp(engine.TrainingTimePerFold)
