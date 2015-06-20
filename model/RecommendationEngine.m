@@ -111,7 +111,8 @@ classdef RecommendationEngine < handle
                 recommendationTime = recommendationTime + toc(recStopwatch);
                 writeStopwatch = tic;
                 nLines = size(userRecommendations,1);
-                if nLines > writeEachNumLines
+                isLastUser = i == dataModel.NumUsers;
+                if nLines > writeEachNumLines || isLastUser
                     if firstWrite
                         % Don't append for first user
                         dlmwrite(recFilePath, userRecommendations,...
