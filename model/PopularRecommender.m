@@ -23,14 +23,19 @@ classdef PopularRecommender < Recommender
         end
         
         % Generate recommendations for the given user
-        function items = recommendForUser(obj, userId)
+        function items = recommendForUser(obj, userId, numRecommendations)
+            if nargin <= 2
+                % Default
+                numRecommendations = 100;
+            end            
             notSeen = obj.DataModel.itemsNotSeenByUser(userId);
             itemCount = obj.ItemCount;
             mask = ismember(itemCount(:,1), notSeen);
             items = obj.ItemCount(mask, :);
-            % Recommend up to 100 items
-            sizeLimit = min(100, size(items,1));
-            items = items(1:sizeLimit, :);
+            % Limit number of recommendations
+            if size(items,1) > numRecommendations
+                items = items(1:numRecommendations, :);
+            end
         end
     end
     

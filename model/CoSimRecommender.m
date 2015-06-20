@@ -42,7 +42,11 @@ classdef CoSimRecommender < ContentBasedRecommender
         end
         
         % Generate recommendations for the given user
-        function itemsWithScore = recommendForUser(obj, userId)
+        function itemsWithScore = recommendForUser(obj, userId, numRecommendations)
+            if nargin <= 2
+                % Default
+                numRecommendations = 100;
+            end
             notSeen = obj.DataModel.itemsNotSeenByUser(userId);            
             seen = obj.DataModel.itemsSeenByUser(userId);
             % result(nNotSeen x 1) = sim (nNotSeen x nItems) * (ratings (1 x nItems))'
@@ -54,6 +58,10 @@ classdef CoSimRecommender < ContentBasedRecommender
             % Make sure any errors are cleared
             predictedRatings(isnan(predictedRatings)) = 0;
             itemsWithScore = sortrows([notSeen' predictedRatings], -2);
+            % Limit number of recommendations
+            if size(itemsWithScore,1) > numRecommendations
+                itemsWithScore = itemsWithScore(1:numRecommendations, :);
+            end
         end
     end
     

@@ -10,7 +10,8 @@ delete(filesToDelete);
 %% Recommendation benchmark
 disp('-----------Baseline CoSimRecommender----------')
 engine = RecommendationEngine(@CoSimRecommender, trainFolder, recFolder);
-engine.recommendFolds(5);
+% Generate recommendations for all five folds, 100 per user
+engine.recommendFolds(5, 100);
 disp('-----------Baseline results----------')
 disp('Training time per fold:')
 disp(engine.TrainingTimePerFold)

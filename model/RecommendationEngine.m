@@ -39,7 +39,11 @@ classdef RecommendationEngine < handle
             obj.IsContentBased = nargin(builder) == 2;
         end
         
-        function recommendFolds(obj, nFolds)
+        function recommendFolds(obj, nFolds, nRecommendationsPerUser)
+            if nargin <= 2
+                % Default
+                nRecommendationsPerUser = 100;
+            end
             disp('Starting recommendFolds')
             recommendFoldsTime = tic;
             obj.TrainingTimePerFold = zeros(1,nFolds);
@@ -57,7 +61,7 @@ classdef RecommendationEngine < handle
             end
             disp('Content model created')
             for iFold = 1:nFolds
-                obj.recommendFold(iFold);
+                obj.recommendFold(iFold, nRecommendationsPerUser);
             end
             totalTime = toc(recommendFoldsTime);
             obj.RecommendFoldsTime = totalTime;
@@ -66,7 +70,7 @@ classdef RecommendationEngine < handle
     end
     
     methods(Access = private)
-        function recommendFold(obj, iFold)
+        function recommendFold(obj, iFold, nRecommendationsPerUser)
             fprintf('Fold %d: Starting\n', iFold)
             trainFilePath = obj.trainFilePathForFold(iFold);
             dataModel = DataModel(trainFilePath);
@@ -85,22 +89,22 @@ classdef RecommendationEngine < handle
             fprintf('Fold %d: Recommender trained in %g s.\n',...
                 iFold, trainingTime)
             % Recommend
-            writeRecommendations(obj, recommender, iFold)
+            writeRecommendations(obj, recommender, iFold, nRecommendationsPerUser)
         end
         
-        function writeRecommendations(obj, recommender, iFold)
+        function writeRecommendations(obj, recommender, iFold, nRecommendationsPerUser)
             dataModel = recommender.DataModel;
             recFilePath = obj.recFilePathForFold(iFold);
             recommendationTime = 0;
             writingTime = 0;
-            writeEachNumLines = 10000;
+            writeEachNumLines = 50000;
             firstWrite = true;
             userRecommendations = [];
             % Recommend
             for i = 1:dataModel.NumUsers
                 userId = dataModel.Users(i);
                 recStopwatch = tic;
-                recommendations = recommender.recommendForUser(userId);
+                recommendations = recommender.recommendForUser(userId, nRecommendationsPerUser);
                 nRecommendations = size(recommendations,1);
                 %Append the recommendations for this user
                 %The first column is the user id

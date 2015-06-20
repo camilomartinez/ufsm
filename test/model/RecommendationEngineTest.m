@@ -7,7 +7,7 @@ end
 function recommendFoldsTest(testCase)
     engine = testCase.TestData.engine;
     recFolder = testCase.TestData.recommendationFolder;
-    engine.recommendFolds(2);
+    engine.recommendFolds(2, 100);
     % Verify all recommendations files are created
     for i=1:2
         recFilePath = sprintf('%s\\recs_%i.csv',recFolder,i-1);
