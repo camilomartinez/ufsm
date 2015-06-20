@@ -85,17 +85,50 @@ classdef RecommendationEngine < handle
             fprintf('Fold %d: Recommender trained in %g s.\n',...
                 iFold, trainingTime)
             % Recommend
-            recommender.recommend();
-            recommendationTime = recommender.RecommendationTime;
+            writeRecommendations(obj, recommender, iFold)
+        end
+        
+        function writeRecommendations(obj, recommender, iFold)
+            dataModel = recommender.DataModel;
+            recFilePath = obj.recFilePathForFold(iFold);
+            recommendationTime = 0;
+            writingTime = 0;
+            writeEachNumLines = 10000;
+            firstWrite = true;
+            userRecommendations = [];
+            % Recommend
+            for i = 1:dataModel.NumUsers
+                userId = dataModel.Users(i);
+                recStopwatch = tic;
+                recommendations = recommender.recommendForUser(userId);
+                nRecommendations = size(recommendations,1);
+                %Append the recommendations for this user
+                %The first column is the user id
+                userRecommendations =...
+                    [userRecommendations;...
+                    repmat(userId, nRecommendations,1) recommendations];
+                % Accumulate recommendation time
+                recommendationTime = recommendationTime + toc(recStopwatch);
+                writeStopwatch = tic;
+                nLines = size(userRecommendations,1);
+                if nLines > writeEachNumLines
+                    if firstWrite
+                        % Don't append for first user
+                        dlmwrite(recFilePath, userRecommendations,...
+                            'precision','%g','delimiter','\t');
+                        firstWrite = false;
+                    else
+                        dlmwrite(recFilePath, userRecommendations,...
+                        'precision','%g','delimiter','\t', '-append');                        
+                    end
+                    userRecommendations = [];
+                end
+                % Accumulate writing time
+                writingTime = writingTime + toc(writeStopwatch);                
+            end
             obj.RecommendationTimePerFold(iFold) = recommendationTime;
             fprintf('Fold %d: Recommendations done in %g s.\n',...
                 iFold, recommendationTime)
-            recFilePath = obj.recFilePathForFold(iFold);
-            %Write
-            tic;
-            dlmwrite(recFilePath, recommender.Recommendations,...
-                'precision','%g','delimiter','\t');
-            writingTime = toc;
             obj.WritingTimePerFold(iFold) = writingTime;
             fprintf('Fold %d: Recommendations written in %g s.\n',...
                 iFold, writingTime)
