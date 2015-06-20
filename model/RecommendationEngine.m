@@ -24,7 +24,9 @@ classdef RecommendationEngine < handle
         ContentFileName = 'icm';
         % Number of recommendations lines
         % buffered before writing
-        WriteEachNumLines = 10000;
+        % Resulting matrix occupies
+        % 8 x 3 x n =~ 24 MB
+        WriteEachNumLines = 1000000;
     end
     
     properties (Access = private)

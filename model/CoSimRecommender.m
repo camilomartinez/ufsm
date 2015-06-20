@@ -31,14 +31,12 @@ classdef CoSimRecommender < ContentBasedRecommender
             nIcm = size(icm,1);
             % Normalize feature vectors
             normIcmItems = normr(icm(items, :));
+            % Mask to return to full size
+            mask = sparse(items', (1:nItems)', ones(nItems,1), nIcm, nItems);
+            normIcmItems = mask * normIcmItems;
             % Compute similarities as dot product
-            similarities = full(normIcmItems * normIcmItems');
-            % Build a sparse matrix
-            rowIndices = reshape(repmat(items, nItems, 1), nItems^2, 1);
-            colIndices = repmat(items', nItems, 1);
-            values = reshape(similarities, nItems^2, 1);
-            obj.ItemItemSimilarity = sparse(rowIndices,...
-                colIndices, values, nIcm, nIcm);
+            similarities = normIcmItems * normIcmItems';
+            obj.ItemItemSimilarity = similarities;
         end
         
         % Generate recommendations for the given user
