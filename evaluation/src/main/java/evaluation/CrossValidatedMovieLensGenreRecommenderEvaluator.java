@@ -40,31 +40,33 @@ import net.recommenders.rival.evaluation.metric.error.RMSE;
  *
  * @author <a href="http://github.com/camilomartinez">Camilo</a>
  */
-public class CrossValidatedNetflixRecommenderEvaluator {
+public class CrossValidatedMovieLensGenreRecommenderEvaluator {
 
     public static void main(String[] args) {
         String sourceFolder = FilenameUtils.normalize(new File("../data/").getAbsolutePath());
-        String modelPath = "data/netflix/model/";
-        String recPath = "data/netflix/recommendations/";
+        String modelPath = "data/ml-hr/model/";
+        String recPath = "data/ml-hr/recommendations/";
         String matlabRecommender = "@CoSimRecommender";
+        String urmFile = "ml-hr/ml-hr_urm.dat";
+        String icmFile = "ml-hr/ml-hr_icm.dat";
         int nFolds = 5;
-        prepareSplits(nFolds, "details/urmCache_short.dat", sourceFolder, modelPath);
-        //Content based
+        prepareSplits(nFolds, urmFile, sourceFolder, modelPath, icmFile);
+        //Matlab
         matlabRecommend(nFolds, modelPath, recPath, "@CoSimRecommender");
         prepareStrategy(nFolds, modelPath, recPath, modelPath);
         evaluate(nFolds, modelPath, recPath);
-        //Baseline
+        //Mahout
         matlabRecommend(nFolds, modelPath, recPath, "@PopularRecommender");
         prepareStrategy(nFolds, modelPath, recPath, modelPath);
         evaluate(nFolds, modelPath, recPath);        
     }    
 
-    public static void prepareSplits(int nFolds, String inFile, String sourceFolder, String outPath) {
+    public static void prepareSplits(int nFolds, String inFile, String sourceFolder, String outPath, String contentFile) {
     	System.out.println("Preparing splits:...................................");
     	String urmFile = new File(sourceFolder, inFile).getPath();
-        String icmFile = new File(sourceFolder, "ICM_IDF.mat").getPath();
+        String icmFile = new File(sourceFolder, contentFile).getPath();
         Path icmPath = new java.io.File(icmFile).toPath();
-        String icmCopy = new File(outPath, "icm.mat").getAbsolutePath();
+        String icmCopy = new File(outPath, "icm.dat").getAbsolutePath();
         Path copyPath = new java.io.File(icmCopy).toPath();
         
         // Copy item content model
@@ -88,7 +90,7 @@ public class CrossValidatedNetflixRecommenderEvaluator {
 
         DataModel<Long, Long> data = null;
         try {
-            data = parser.parseData(new File(urmFile), "\\|");
+            data = parser.parseData(new File(urmFile), "\\t");
         } catch (IOException e) {
             e.printStackTrace();
         }
