@@ -11,6 +11,7 @@ classdef RecommendationEngine < handle
         TrainingTimePerFold
         RecommendationTimePerFold        
         WritingTimePerFold
+        RecommendFoldsTime
     end
     
     properties (Access = private, Constant)
@@ -29,6 +30,8 @@ classdef RecommendationEngine < handle
         end
         
         function recommendFolds(obj, nFolds, trainFolder, recommendationFolder)
+            disp('Starting recommendFolds')
+            recommendFoldsTime = tic;
             obj.TrainingTimePerFold = zeros(1,nFolds);
             obj.RecommendationTimePerFold = zeros(1,nFolds);
             obj.WritingTimePerFold = zeros(1,nFolds);
@@ -41,27 +44,42 @@ classdef RecommendationEngine < handle
                 contentFilePath = obj.contentFilePath(trainFolder);
                 contentModel = ContentModel(contentFilePath);
             end
+            disp('Content model created')
             for iFold = 1:nFolds
+                fprintf('Fold %d: Starting\n', iFold)
                 trainFilePath = obj.trainFilePathForFold(trainFolder, iFold);
                 dataModel = DataModel(trainFilePath);
+                fprintf('Fold %d: Data model created\n', iFold)
                 if obj.IsContentBased
                     recommender = obj.RecommenderBuilder(dataModel, contentModel);
                 else
                     recommender = obj.RecommenderBuilder(dataModel);
                 end
+                fprintf('Fold %d: Recommender created\n', iFold)
                 recommender.train();
                 % Save times for benchmark
-                obj.TrainingTimePerFold(iFold) = recommender.TrainingTime;
+                trainingTime = recommender.TrainingTime;
+                obj.TrainingTimePerFold(iFold) = trainingTime;
+                fprintf('Fold %d: Recommender trained in %g s.\n',...
+                    iFold, trainingTime)
                 recommender.recommend();
                 % Save times for benchmark
-                obj.RecommendationTimePerFold(iFold) =...
-                    recommender.RecommendationTime;
+                recommendationTime = recommender.RecommendationTime;
+                obj.RecommendationTimePerFold(iFold) = recommendationTime;
+                fprintf('Fold %d: Recommendations done in %g s.\n',...
+                    iFold, recommendationTime)
                 recFilePath = obj.recFilePathForFold(recommendationFolder, iFold);
                 tic;
                 dlmwrite(recFilePath, recommender.Recommendations,...
                     'precision','%g','delimiter','\t');
-                obj.WritingTimePerFold(iFold) = toc;
+                writingTime = toc;
+                obj.WritingTimePerFold(iFold) = writingTime;
+                fprintf('Fold %d: Recommendations written in %g s.\n',...
+                    iFold, writingTime)
             end
+            totalTime = toc(recommendFoldsTime);
+            obj.RecommendFoldsTime = totalTime;
+            fprintf('All folds completed in %g s.\n', totalTime)
         end
     end
     

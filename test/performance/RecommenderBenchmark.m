@@ -8,19 +8,22 @@ recFolder = strcat(sampleDataFolder, 'recommendations');
 filesToDelete = strcat(recFolder,'\recs_*.csv');
 delete(filesToDelete);
 %% Recommendation benchmark
+disp('-----------Baseline CoSimRecommender----------')
 engine = RecommendationEngine(@CoSimRecommender);
 engine.recommendFolds(5, trainFolder, recFolder);
+disp('-----------Baseline results----------')
 disp('Training time per fold:')
 disp(engine.TrainingTimePerFold)
 disp('Recommendation time per fold:')
 disp(engine.RecommendationTimePerFold)
 disp('Writing time per fold:')
 disp(engine.WritingTimePerFold)
-disp('Baseline CoSimRecommender')
 meanStats = sum([...
     engine.TrainingTimePerFold',...
     engine.RecommendationTimePerFold',...
     engine.WritingTimePerFold']);
-fprintf(...
-    'Avg. training time %g\nAvg. recommendation time %g\nAvg. writing time %g\n',...
-    meanStats(1),meanStats(2),meanStats(3))
+disp('-----------Baseline summary----------')
+fprintf('Total training time %g (%4.2f%%)\n',meanStats(1),100*meanStats(1)/engine.RecommendFoldsTime)
+fprintf('Total recommendation time %g (%4.2f%%)\n',meanStats(2),100*meanStats(2)/engine.RecommendFoldsTime)
+fprintf('Total writing time %g (%4.2f%%)\n',meanStats(3),100*meanStats(3)/engine.RecommendFoldsTime)
+fprintf('Total execution time %g\n',engine.RecommendFoldsTime)
