@@ -12,6 +12,9 @@ classdef RecommendationEngine < handle
         RecommendationTimePerFold        
         WritingTimePerFold
         RecommendFoldsTime
+        %Input output folders
+        TrainFolder
+        RecommendationFolder
     end
     
     properties (Access = private, Constant)
@@ -23,31 +26,35 @@ classdef RecommendationEngine < handle
     
     methods
         %Constructor
-        function obj = RecommendationEngine(builder)
+        function obj = RecommendationEngine(builder, trainFolder,...
+                recommendationFolder)
             obj.RecommenderBuilder = builder;
+            obj.TrainFolder = trainFolder;
+            obj.RecommendationFolder = recommendationFolder;
             % Does the builder requires two input arguments
             obj.IsContentBased = nargin(builder) == 2;
         end
         
-        function recommendFolds(obj, nFolds, trainFolder, recommendationFolder)
+        function recommendFolds(obj, nFolds)
             disp('Starting recommendFolds')
             recommendFoldsTime = tic;
             obj.TrainingTimePerFold = zeros(1,nFolds);
             obj.RecommendationTimePerFold = zeros(1,nFolds);
             obj.WritingTimePerFold = zeros(1,nFolds);
             % Make sure the output folder exists
+            recommendationFolder = obj.RecommendationFolder;
             if ~isequal(exist(recommendationFolder, 'dir'),7)
                 mkdir(recommendationFolder);
             end
             % Create content model if required
             if obj.IsContentBased
-                contentFilePath = obj.contentFilePath(trainFolder);
+                contentFilePath = obj.contentFilePath();
                 contentModel = ContentModel(contentFilePath);
             end
             disp('Content model created')
             for iFold = 1:nFolds
                 fprintf('Fold %d: Starting\n', iFold)
-                trainFilePath = obj.trainFilePathForFold(trainFolder, iFold);
+                trainFilePath = obj.trainFilePathForFold(iFold);
                 dataModel = DataModel(trainFilePath);
                 fprintf('Fold %d: Data model created\n', iFold)
                 if obj.IsContentBased
@@ -68,7 +75,7 @@ classdef RecommendationEngine < handle
                 obj.RecommendationTimePerFold(iFold) = recommendationTime;
                 fprintf('Fold %d: Recommendations done in %g s.\n',...
                     iFold, recommendationTime)
-                recFilePath = obj.recFilePathForFold(recommendationFolder, iFold);
+                recFilePath = obj.recFilePathForFold(iFold);
                 tic;
                 dlmwrite(recFilePath, recommender.Recommendations,...
                     'precision','%g','delimiter','\t');
@@ -84,26 +91,29 @@ classdef RecommendationEngine < handle
     end
     
     methods(Access = private)
-        function path = trainFilePathForFold(obj, trainFolder, i)
-            fileName = sprintf(obj.FileFormat, obj.TrainFileName, i-1);
-            path = fullfile(trainFolder, fileName);
+        function recommendFold(iFold)
         end
         
-        function path = contentFilePath(obj, trainFolder)
+        function path = trainFilePathForFold(obj, i)
+            fileName = sprintf(obj.FileFormat, obj.TrainFileName, i-1);
+            path = fullfile(obj.TrainFolder, fileName);
+        end
+        
+        function path = contentFilePath(obj)
             % Check if file is .mat
-            datFile = fullfile(trainFolder,...
+            datFile = fullfile(obj.TrainFolder,...
                 sprintf('%s.dat', obj.ContentFileName));
             if isequal(exist(datFile, 'file'),2)
                 path = datFile;
             else
-                path = fullfile(trainFolder,...
+                path = fullfile(obj.TrainFolder,...
                     sprintf('%s.mat', obj.ContentFileName));
             end
         end
         
-        function path = recFilePathForFold(obj, recFolder, i)
+        function path = recFilePathForFold(obj, i)
             fileName = sprintf(obj.FileFormat, obj.RecFileName, i-1);
-            path = fullfile(recFolder, fileName);
+            path = fullfile(obj.RecommendationFolder, fileName);
         end 
     end
 end

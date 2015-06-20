@@ -4,20 +4,10 @@ tests = functiontests(localfunctions);
 end
 
 %% Test Functions
-function builderTest(testCase)
-    engine = testCase.TestData.engine;
-    testMatrix = [1 1 1];
-    dataModel = DataModel();
-    dataModel.Urm = spconvert(testMatrix);
-    recommender = engine.RecommenderBuilder(dataModel);
-    testCase.verifyInstanceOf(recommender, ?Recommender);
-end
-
 function recommendFoldsTest(testCase)
     engine = testCase.TestData.engine;
     recFolder = testCase.TestData.recommendationFolder;
-    engine.recommendFolds(2,...
-        testCase.TestData.trainFolder, recFolder);
+    engine.recommendFolds(2);
     % Verify all recommendations files are created
     for i=1:2
         recFilePath = sprintf('%s\\recs_%i.csv',recFolder,i-1);
@@ -31,14 +21,18 @@ end
 
 function isContentBasedFalseTest(testCase)
     builder = @PopularRecommender;
-    engine = RecommendationEngine(builder);    
+    engine = RecommendationEngine(builder,...
+        testCase.TestData.trainFolder,...
+        testCase.TestData.recommendationFolder);    
     testCase.verifyFalse(engine.IsContentBased,...
         'Popular recommender is not content based')
 end
 
 function isContentBasedTrueTest(testCase)
     builder = @CoSimRecommender;
-    engine = RecommendationEngine(builder);    
+    engine = RecommendationEngine(builder,...
+        testCase.TestData.trainFolder,...
+        testCase.TestData.recommendationFolder);    
     testCase.verifyTrue(engine.IsContentBased,...
         'Cosine similarity recommender is content based')
 end
@@ -54,7 +48,9 @@ end
 %% Optional fresh fixtures  
 function setup(testCase)  % do not change function name
 	builder = @PopularRecommender;
-    engine = RecommendationEngine(builder);    
+    engine = RecommendationEngine(builder,...
+        testCase.TestData.trainFolder,...
+        testCase.TestData.recommendationFolder);    
     testCase.TestData.engine = engine;
     % Clear recommendation files if any
     filesToDelete = strcat(testCase.TestData.recommendationFolder,...
