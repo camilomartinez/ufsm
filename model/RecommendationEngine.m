@@ -24,7 +24,7 @@ classdef RecommendationEngine < handle
         ContentFileName = 'icm';
         % Number of recommendations lines
         % buffered before writing
-        WriteEachNumLines = 50000;
+        WriteEachNumLines = 10000;
     end
     
     properties (Access = private)
@@ -145,7 +145,9 @@ classdef RecommendationEngine < handle
                 recommendationTime = recommendationTime + toc(recStopwatch);
                 writeStopwatch = tic;
                 % Check if we need to flush
-                if finishLine >= writeEachNumLines                    
+                if finishLine >= writeEachNumLines 
+                    fprintf('Fold %d: Flushing recommendations. Progress %4.2f%%\n',...
+                        iFold, 100*i/dataModel.NumUsers)
                     obj.writeMatrix(recFilePath,allRecommendations,~firstWrite)
                     firstWrite = false;
                     % Matrix flushed

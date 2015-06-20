@@ -25,7 +25,8 @@ end
 
 function recommendForUser1Test(testCase)
     recommender = testCase.TestData.recommender;
-    expected = [ 3 1; 1 0 ];
+    % As rating for item 1 is 0 it doesn't appear
+    expected = [ 3 1 ];
     testCase.verifyEqual(recommender.recommendForUser(2), expected,...
         'The items recommended are not correct');
 end
@@ -59,7 +60,8 @@ function recommendForUser2Test(testCase)
     recommender.train();    
     testCase.TestData.recommender = recommender;
     recommender = testCase.TestData.recommender;
-    expected = [ 4 1; 1 0 ];
+    % As rating for item 1 is 0 it doesn't appear
+    expected = [ 4 1 ];
     testCase.verifyEqual(recommender.recommendForUser(2), expected,...
         'The items recommended are not correct');
 end

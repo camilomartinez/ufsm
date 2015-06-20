@@ -46,17 +46,17 @@ public class CrossValidatedMovieLensGenreRecommenderEvaluator {
         String sourceFolder = FilenameUtils.normalize(new File("../data/").getAbsolutePath());
         String modelPath = "data/ml-hr/model/";
         String recPath = "data/ml-hr/recommendations/";
-        String matlabRecommender = "@CoSimRecommender";
+        int nRecommendationsPerUser = 10;
         String urmFile = "ml-hr/ml-hr_urm.dat";
         String icmFile = "ml-hr/ml-hr_icm.dat";
         int nFolds = 5;
-        prepareSplits(nFolds, urmFile, sourceFolder, modelPath, icmFile);
+        //prepareSplits(nFolds, urmFile, sourceFolder, modelPath, icmFile);
         //Matlab
-        matlabRecommend(nFolds, modelPath, recPath, "@CoSimRecommender");
+        matlabRecommend(nFolds, modelPath, recPath, "@CoSimRecommender", nRecommendationsPerUser);
         prepareStrategy(nFolds, modelPath, recPath, modelPath);
         evaluate(nFolds, modelPath, recPath);
         //Mahout
-        matlabRecommend(nFolds, modelPath, recPath, "@PopularRecommender");
+        matlabRecommend(nFolds, modelPath, recPath, "@PopularRecommender", nRecommendationsPerUser);
         prepareStrategy(nFolds, modelPath, recPath, modelPath);
         evaluate(nFolds, modelPath, recPath);        
     }    
@@ -115,7 +115,7 @@ public class CrossValidatedMovieLensGenreRecommenderEvaluator {
         
     }
 
-    public static void matlabRecommend(int nFolds, String inPath, String outPath, String matlabRecommender) {
+    public static void matlabRecommend(int nFolds, String inPath, String outPath, String matlabRecommender, int nRecommendationsPerUser) {
     	System.out.println(String.format("Recommending using Matlab %s:..........................", matlabRecommender));
     	// Uses MatlabControl library available at
     	// https://code.google.com/p/matlabcontrol/
@@ -124,14 +124,16 @@ public class CrossValidatedMovieLensGenreRecommenderEvaluator {
 		try {
 			inFullPath = new File(inPath).getCanonicalPath();
 			outFullPath = new File(outPath).getCanonicalPath();
-			command = String.format("recommend(%s, %d, '%s', '%s')",
+			command = String.format("recommend(%s, %d, '%s', '%s', %d)",
 					matlabRecommender,
 	    			nFolds,
 	    			inFullPath,
-	    			outFullPath);	    	
+	    			outFullPath,
+	    			nRecommendationsPerUser);	    	
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		System.out.println(String.format("Command: %s", command));
     	// Run Matlab only showing results
     	// Faster to start
     	MatlabProxyFactoryOptions options = new MatlabProxyFactoryOptions.Builder().setHidden(true).build();
