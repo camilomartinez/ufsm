@@ -50,7 +50,7 @@ public class CrossValidatedMovieLensGenreRecommenderEvaluator {
         String urmFile = "ml-hr/ml-hr_urm.dat";
         String icmFile = "ml-hr/ml-hr_icm.dat";
         int nFolds = 5;
-        //prepareSplits(nFolds, urmFile, sourceFolder, modelPath, icmFile);
+        prepareSplits(nFolds, urmFile, sourceFolder, modelPath, icmFile);
         //Matlab
         matlabRecommend(nFolds, modelPath, recPath, "@CoSimRecommender", nRecommendationsPerUser);
         prepareStrategy(nFolds, modelPath, recPath, modelPath);
