@@ -3,6 +3,7 @@ classdef Recommender < handle
     %   Detailed explanation goes here
     
     properties
+        % User rating matrix information
         DataModel
     end
     
@@ -48,8 +49,8 @@ classdef Recommender < handle
     methods (Abstract)
         % Allow the recommender to train its internal model
         trainModel(obj)
-        % Generate recommendations for the given user
-        itemsWithScore = recommendForUser(obj, userId)
+        % Generate n recommendations for the given user
+        itemsWithScore = recommendForUser(obj, userId, numRecommendations)
     end
     
 end

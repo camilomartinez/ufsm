@@ -26,6 +26,21 @@ function itemsTest(testCase)
         'The items are not extracted correctly from the data model')
 end
 
+function numItemsTest(testCase)
+    dataModel = DataModel();
+    testMatrix = [
+        4   2   5
+        1   1   1
+        2   1   2
+        1   2   1
+        ];
+    dataModel.Urm = spconvert(testMatrix);
+    % Number of items
+    expected = 2;
+    testCase.verifyEqual(dataModel.NumItems, expected, ...
+        'The number of items extracted is not correct')
+end
+
 function itemsSeenByUser1Test(testCase)
     dataModel = testCase.TestData.dataModel;
     userId = 1;

@@ -13,6 +13,9 @@ import net.recommenders.rival.evaluation.metric.ranking.NDCG;
 import net.recommenders.rival.evaluation.metric.ranking.Precision;
 import net.recommenders.rival.evaluation.strategy.EvaluationStrategy;
 import net.recommenders.rival.examples.DataDownloader;
+import net.recommenders.rival.recommend.frameworks.RecommenderIO;
+import net.recommenders.rival.recommend.frameworks.mahout.GenericRecommenderBuilder;
+import net.recommenders.rival.recommend.frameworks.mahout.exceptions.RecommenderException;
 import net.recommenders.rival.split.parser.MovielensParser;
 import net.recommenders.rival.split.splitter.CrossValidationSplitter;
 
@@ -20,6 +23,15 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
+import java.util.List;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.mahout.cf.taste.common.TasteException;
+import org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;
+import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
+import org.apache.mahout.cf.taste.recommender.RecommendedItem;
+import org.apache.mahout.cf.taste.recommender.Recommender;
 
 import net.recommenders.rival.evaluation.metric.error.RMSE;
 
@@ -28,41 +40,62 @@ import net.recommenders.rival.evaluation.metric.error.RMSE;
  *
  * @author <a href="http://github.com/camilomartinez">Camilo</a>
  */
-public class CrossValidatedMatlabRecommenderEvaluator {
+public class CrossValidatedMovieLensGenreRecommenderEvaluator {
 
     public static void main(String[] args) {
-        String url = "http://files.grouplens.org/datasets/movielens/ml-100k.zip";
-        String folder = "data/ml-100k";
-        String modelPath = "data/ml-100k/model/";
-        String recPath = "data/ml-100k/recommendations/";
+        String sourceFolder = FilenameUtils.normalize(new File("../data/").getAbsolutePath());
+        String modelPath = "data/ml-hr/model/";
+        String recPath = "data/ml-hr/recommendations/";
+        int nRecommendationsPerUser = 10;
+        String urmFile = "ml-hr/ml-hr_urm.dat";
+        String icmFile = "ml-hr/ml-hr_icm.dat";
         int nFolds = 5;
-        prepareSplits(url, nFolds, "data/ml-100k/u.data", folder, modelPath);
-        recommend(nFolds, modelPath, recPath);
-        // the strategy files are (currently) being ignored
+        prepareSplits(nFolds, urmFile, sourceFolder, modelPath, icmFile);
+        //Matlab
+        matlabRecommend(nFolds, modelPath, recPath, "@CoSimRecommender", nRecommendationsPerUser);
         prepareStrategy(nFolds, modelPath, recPath, modelPath);
         evaluate(nFolds, modelPath, recPath);
-    }
+        //Mahout
+        matlabRecommend(nFolds, modelPath, recPath, "@PopularRecommender", nRecommendationsPerUser);
+        prepareStrategy(nFolds, modelPath, recPath, modelPath);
+        evaluate(nFolds, modelPath, recPath);        
+    }    
 
-    public static void prepareSplits(String url, int nFolds, String inFile, String folder, String outPath) {
-        DataDownloader dd = new DataDownloader(url, folder);
-        dd.downloadAndUnzip();
-
+    public static void prepareSplits(int nFolds, String inFile, String sourceFolder, String outPath, String contentFile) {
+    	System.out.println("Preparing splits:...................................");
+    	String urmFile = new File(sourceFolder, inFile).getPath();
+        String icmFile = new File(sourceFolder, contentFile).getPath();
+        Path icmPath = new java.io.File(icmFile).toPath();
+        String icmCopy = new File(outPath, "icm.dat").getAbsolutePath();
+        Path copyPath = new java.io.File(icmCopy).toPath();
+        
+        // Copy item content model
+        File dir = new File(outPath);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        try {
+			java.nio.file.Files.copy( 
+					icmPath, 
+					copyPath,
+			        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        
+        // Generate splits
         boolean perUser = true;
         long seed = 2048;
-        Parser parser = new MovielensParser();
+        SimpleParser parser = new SimpleParser();
 
         DataModel<Long, Long> data = null;
         try {
-            data = parser.parseData(new File(inFile));
+            data = parser.parseData(new File(urmFile), "\\t");
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         DataModel<Long, Long>[] splits = new CrossValidationSplitter(nFolds, perUser, seed).split(data);
-        File dir = new File(outPath);
-        if (!dir.exists()) {
-            dir.mkdir();
-        }
         for (int i = 0; i < splits.length / 2; i++) {
             DataModel<Long, Long> training = splits[2 * i];
             DataModel<Long, Long> test = splits[2 * i + 1];
@@ -72,33 +105,35 @@ public class CrossValidatedMatlabRecommenderEvaluator {
             System.out.println("test: " + testFile);
             boolean overwrite = true;
             try {
-//                training.saveDataModel(trainingFile, overwrite);
-//                test.saveDataModel(testFile, overwrite);
                 DataModelUtils.saveDataModel(training, trainingFile, overwrite);
                 DataModelUtils.saveDataModel(test, testFile, overwrite);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
         }
+        
+        
     }
 
-    public static void recommend(int nFolds, String inPath, String outPath) {
+    public static void matlabRecommend(int nFolds, String inPath, String outPath, String matlabRecommender, int nRecommendationsPerUser) {
+    	System.out.println(String.format("Recommending using Matlab %s:..........................", matlabRecommender));
     	// Uses MatlabControl library available at
     	// https://code.google.com/p/matlabcontrol/
     	// Prepare command
-    	String recommender = "@PopularRecommender";
     	String inFullPath, outFullPath, command = null;
 		try {
 			inFullPath = new File(inPath).getCanonicalPath();
 			outFullPath = new File(outPath).getCanonicalPath();
-			command = String.format("recommend(%s, %d, '%s', '%s')",
-	    			recommender,
+			command = String.format("recommend(%s, %d, '%s', '%s', %d)",
+					matlabRecommender,
 	    			nFolds,
 	    			inFullPath,
-	    			outFullPath);	    	
+	    			outFullPath,
+	    			nRecommendationsPerUser);	    	
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		System.out.println(String.format("Command: %s", command));
     	// Run Matlab only showing results
     	// Faster to start
     	MatlabProxyFactoryOptions options = new MatlabProxyFactoryOptions.Builder().setHidden(true).build();
@@ -115,6 +150,49 @@ public class CrossValidatedMatlabRecommenderEvaluator {
 		} catch (MatlabInvocationException e) {
 			e.printStackTrace();
 		}        
+    }
+    
+    public static void mahoutRecommend(int nFolds, String inPath, String outPath) {
+    	System.out.println("Recommending using Mahout:..........................");
+    	for (int i = 0; i < nFolds; i++) {
+            org.apache.mahout.cf.taste.model.DataModel trainModel = null;
+            org.apache.mahout.cf.taste.model.DataModel testModel = null;
+            try {
+                trainModel = new FileDataModel(new File(inPath + "train_" + i + ".csv"));
+                testModel = new FileDataModel(new File(inPath + "test_" + i + ".csv"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            GenericRecommenderBuilder grb = new GenericRecommenderBuilder();
+            String recommenderClass = "org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender";
+            String similarityClass = "org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity";
+            int neighborhoodSize = 50;
+            Recommender recommender = null;
+            try {
+                recommender = grb.buildRecommender(trainModel, recommenderClass, similarityClass, neighborhoodSize);
+            } catch (TasteException e) {
+                e.printStackTrace();
+            } catch (RecommenderException e) {
+                e.printStackTrace();
+            }
+
+            String fileName = "recs_" + i + ".csv";
+
+            LongPrimitiveIterator users = null;
+            try {
+                users = testModel.getUserIDs();
+                boolean createFile = true;
+                while (users.hasNext()) {
+                    long u = users.nextLong();
+                    List<RecommendedItem> items = recommender.recommend(u, trainModel.getNumItems());
+                    RecommenderIO.writeData(u, items, outPath, fileName, !createFile);
+                    createFile = false;
+                }
+            } catch (TasteException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -156,6 +234,8 @@ public class CrossValidatedMatlabRecommenderEvaluator {
             DataModel<Long, Long> modelToEval = new DataModel<Long, Long>();
 
             for (Long user : recModel.getUsers()) {
+            	boolean isTestUser = testModel.getUsers().contains(user);
+            	if (!isTestUser) continue;
                 for (Long item : strategy.getCandidateItemsToRank(user)) {
                     if (recModel.getUserItemPreferences().get(user).containsKey(item)) {
                         modelToEval.addPreference(user, item, recModel.getUserItemPreferences().get(user).get(item));
