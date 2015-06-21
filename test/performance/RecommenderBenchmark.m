@@ -2,17 +2,26 @@
 clear;
 clc;
 %% Test files
-sampleDataFolder = 'C:\Code\Polimi\thesis\Matlab\evaluation\data\netflix\';
+nFolds = 5;
+nRecommendationsPerUser = 10;
+sampleDataFolder = 'C:\Code\Polimi\thesis\Matlab\evaluation\data\ml-hr\';
 trainFolder = strcat(sampleDataFolder, 'model');
 recFolder = strcat(sampleDataFolder, 'recommendations');
 filesToDelete = strcat(recFolder,'\recs_*.csv');
 delete(filesToDelete);
 %% Recommendation benchmark
-disp('-----------Baseline CoSimRecommender----------')
-engine = RecommendationEngine(@CoSimRecommender, trainFolder, recFolder);
+disp('-----------Starting benchmark----------')
+% Activate profiling to record function calls
+profile on
 % Generate recommendations for all five folds, 100 per user
-engine.recommendFolds(5, 10);
-disp('-----------Baseline results----------')
+engine = recommend( @CoSimRecommender, nFolds,...
+    trainFolder, recFolder, nRecommendationsPerUser);
+% Display UI
+profile viewer
+p = profile('info');
+% Save results to avoid losing them
+profsave(p,'profile_results')
+disp('-----------Results per fold----------')
 disp('Training time per fold:')
 disp(engine.TrainingTimePerFold)
 disp('Recommendation time per fold:')
@@ -23,7 +32,7 @@ meanStats = sum([...
     engine.TrainingTimePerFold',...
     engine.RecommendationTimePerFold',...
     engine.WritingTimePerFold']);
-disp('-----------Baseline summary----------')
+disp('-----------Summary----------')
 fprintf('Total training time %g (%4.2f%%)\n',meanStats(1),100*meanStats(1)/engine.RecommendFoldsTime)
 fprintf('Total recommendation time %g (%4.2f%%)\n',meanStats(2),100*meanStats(2)/engine.RecommendFoldsTime)
 fprintf('Total writing time %g (%4.2f%%)\n',meanStats(3),100*meanStats(3)/engine.RecommendFoldsTime)

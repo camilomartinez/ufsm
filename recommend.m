@@ -1,4 +1,4 @@
-function recommend( recommender, nFolds, inPath, outPath, nRecommendationsPerUser)
+function engine = recommend( recommender, nFolds, inPath, outPath, nRecommendationsPerUser)
 %RECOMMEND Wrapper function to call implemented recommenders
 %   recommender should be the recommender constructor to use
 %   nFolds how many folds are being evaluated
@@ -6,6 +6,7 @@ function recommend( recommender, nFolds, inPath, outPath, nRecommendationsPerUse
 %   outPath Folder where recommendation files will be written
 %   nRecommendationsPerUser How many recommendations are generated for each
 %   user
+%   Return  the engine used for recommendations to extract time measures
 %% Setup
 if nargin <= 4
     % default
