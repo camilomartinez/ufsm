@@ -63,8 +63,8 @@ classdef RecommendationEngine < handle
             if obj.IsContentBased
                 contentFilePath = obj.contentFilePath();
                 obj.ContentModelCache = ContentModel(contentFilePath);
+                disp('Content model created')
             end
-            disp('Content model created')
             for iFold = 1:nFolds
                 obj.recommendFold(iFold, nRecommendationsPerUser);
             end
