@@ -8,6 +8,7 @@ classdef ContentModel < handle
         % Each column correspond to the
         % feature vector of a given item
         Icm
+        NumFeatures
     end
     
     methods
@@ -27,7 +28,15 @@ classdef ContentModel < handle
                 %Skip first row
                 obj.Icm = parseData(filename, '\t', true);
             end
-            
+        end
+        
+        %Updates dependent values on item content matrix
+        %Main use case is testing
+        function set.Icm(obj, value)
+            % Save immutable data
+            obj.Icm = value;
+            % Not using dependent to avoid doing this operations each time            
+            obj.NumFeatures = size(obj.Icm,2);
         end
     end
     

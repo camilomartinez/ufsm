@@ -47,6 +47,17 @@ function icmFromDatTest(testCase)
         'Item content matrix not load correctly from .dat file');
 end
 
+function numFeaturesTest(testCase)
+    model = ContentModel();
+    % Full icm matrix
+    %    0   1   0
+    %    1   0   0        
+    icm = sparse([1 2], [2 1], [1 1], 2, 3);
+    model.Icm = icm;
+    testCase.verifyEqual(model.NumFeatures, 3,...
+        'Incorrect number of features');
+end
+
 %% Optional file fixtures  
 function setupOnce(testCase)  % do not change function name
 	testCase.TestData.testFile = 'ICM_IDF.mat';
