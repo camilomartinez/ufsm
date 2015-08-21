@@ -77,8 +77,18 @@ classdef UfsmRecommender < ContentBasedRecommender
         end
         
         % Cost function of the recommender
-        function error = costFunction(obj, M, W)
+        function error = lossFunction(obj, M, W)
             error = 1;
+        end
+        
+        function rating = estimatedRating(obj, userId, itemId, M, W)
+            F = obj.ContentModel.Icm;
+            % (1 x l) * (l x nf) * (nf x 1)
+            rating = M(userId,:) * W * (F(itemId,:) .* sum(F(positive,:)))';
+        end
+        
+        function positives = positiveFeedbackFromUser(obj, userId)
+            [~, positives, ~] = find(obj.BinUrm(userId,:));
         end
     end
     
