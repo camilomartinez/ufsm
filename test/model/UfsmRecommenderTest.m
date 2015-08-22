@@ -39,8 +39,50 @@ function positiveFeedbackFromUser3Test(testCase)
         'The items with positive feedback do not match');
 end
 
+function estimatedRating1Test(testCase)
+    recommender = testCase.TestData.recommender;
+    % nu x L; nu = 4, L = 3
+    M = zeros(4,3);
+    % L x nf; nf = 2
+    W = zeros(3,2);
+    userId = 1;
+    itemId = 3;
+    % Expected rating
+    expected = 0;
+    testCase.verifyEqual(recommender.estimatedRating(userId, itemId, M, W), expected,...
+        'The estimated rating formula is not size-consistent');
+end
+
+function estimatedRating2Test(testCase)
+    recommender = testCase.TestData.recommender;
+    M = testCase.TestData.M;
+    W = testCase.TestData.W;
+    userId = 1;
+    itemId = 3;
+    % Expected rating
+    expected = 0.4960;
+    testCase.verifyEqual(recommender.estimatedRating(userId, itemId, M, W), expected,...
+        'The estimated rating is incorrect');
+end
+
 %% Optional fresh fixtures  
 function setup(testCase)  % do not change function name
+    % Used for estimating rating
+    % nu x L; nu = 4, L = 3
+    M = [
+        0.1     0.2     0.7
+        1       0       0
+        0.3     0.2     0.5
+        0       0.7     0.5
+	];
+    % L x nf; nf = 2
+    testCase.TestData.M = M;
+    W = [
+        1   0
+        0   1
+        0.8 0.6
+	];
+    testCase.TestData.W = W;
     dataModel = DataModel();
     urm = [
         1   1   1
@@ -52,13 +94,15 @@ function setup(testCase)  % do not change function name
     dataModel.Urm = spconvert(urm);
     contentModel = ContentModel();
     % Icm full matrix
-    %    0   0.5
-    %    1   0
-    %    2.7 0
+    %    0.8    0.6
+    %    0      1
+    %    0.6    0.8
     icm = [
-        2   1   1
-        3   1   2.7
-        1   2   0.5
+        1   1   0.8
+        1   2   0.6
+        2   2   1
+        3   1   0.6
+        3   2   0.8
     ];
     contentModel.Icm = spconvert(icm);
     recommender = UfsmRecommender(dataModel, contentModel);

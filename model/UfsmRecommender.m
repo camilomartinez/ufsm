@@ -83,8 +83,13 @@ classdef UfsmRecommender < ContentBasedRecommender
         
         function rating = estimatedRating(obj, userId, itemId, M, W)
             F = obj.ContentModel.Icm;
+            positives = obj.positiveFeedbackFromUser(userId);
             % (1 x l) * (l x nf) * (nf x 1)
-            rating = M(userId,:) * W * (F(itemId,:) .* sum(F(positive,:)))';
+            fPos = F(positives,:);
+            nPositives = size(fPos, 1);
+            hadamardFeatureProduct = repmat(F(itemId,:), [nPositives 1]) .* fPos;
+            gSims = W * sum(hadamardFeatureProduct,1)';
+            rating = M(userId,:) * gSims;
         end
         
         function positives = positiveFeedbackFromUser(obj, userId)
